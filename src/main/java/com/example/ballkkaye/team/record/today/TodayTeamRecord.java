@@ -2,6 +2,7 @@ package com.example.ballkkaye.team.record.today;
 
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -58,4 +59,40 @@ public class TodayTeamRecord {
 
     @CreationTimestamp
     private Timestamp createdAt;
+
+    @Builder
+    public TodayTeamRecord(
+            Integer id,
+            Team team,
+            Integer teamRank,
+            Integer totalGame,
+            Integer winGame,
+            Integer loseGame,
+            Integer drawGame,
+            Double winRate,
+            Double gap,
+            String recentTenGame,
+            String streak,
+            Double OPS,
+            Integer R,
+            Double ERA,
+            Timestamp createdAt
+
+    ) {
+        this.id = id;
+        this.team = team;
+        this.teamRank = teamRank;
+        this.totalGame = totalGame;
+        this.winGame = winGame;
+        this.loseGame = loseGame;
+        this.drawGame = drawGame;
+        this.winRate = winRate;
+        this.gap = gap;
+        this.recentTenGame = recentTenGame;
+        this.streak = streak;
+        this.OPS = OPS;
+        this.R = R;
+        this.ERA = ERA;
+        this.createdAt = createdAt;
+    }
 }
