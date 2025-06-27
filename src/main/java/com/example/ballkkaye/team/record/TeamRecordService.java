@@ -6,7 +6,6 @@ import com.example.ballkkaye.team.TeamRepository;
 import com.example.ballkkaye.team.record.today.TodayTeamRecord;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRepository;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRequest;
-
 import io.github.bonigarcia.wdm.WebDriverManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.example.ballkkaye._core.util.UtilMapper.getTeamId;
-
 
 @RequiredArgsConstructor
 @Service

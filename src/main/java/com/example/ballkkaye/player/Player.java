@@ -2,6 +2,7 @@ package com.example.ballkkaye.player;
 
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,4 +23,12 @@ public class Player {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Team team;
+
+    @Builder
+    public Player(Integer id, Integer kboPlayerId, String name, Team team) {
+        this.id = id;
+        this.kboPlayerId = kboPlayerId;
+        this.name = name;
+        this.team = team;
+    }
 }
