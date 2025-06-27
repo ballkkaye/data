@@ -14,19 +14,19 @@ public class GameController {
 
     // 정규 리그 전체 경기 일정
     @Scheduled(cron = "0 0 0 1 2 *", zone = "Asia/Seoul") // 매년 2월 1일 00시 정각
-    public void crawlRegularSeason() {
+    public void saveRegularSeason() {
         gameService.save();
     }
 
     // 포스트 리그 전체 경기 일정
     @Scheduled(cron = "0 0 0 ? 8-11 1", zone = "Asia/Seoul") // 매주 월요일 00시
-    public void crawlPostSeason() {
+    public void savePostSeason() {
         gameService.save();
     }
 
     // 관리자용
     @GetMapping("/s/admin/bot/gameCrawlAndSave")
-    public ResponseEntity<String> save() {
+    public ResponseEntity<String> adminSave() {
         gameService.save();
         return ResponseEntity.ok("ok");
     }
