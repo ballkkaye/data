@@ -5,6 +5,7 @@ import com.example.ballkkaye.common.enums.GameStatus;
 import com.example.ballkkaye.stadium.Stadium;
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -65,4 +66,22 @@ public class Game {
 
     @CreationTimestamp
     private Timestamp createdAt;
+
+    @Builder
+    public Game(Integer id, Stadium stadium, Team awayTeam, Team homeTeam, GameStatus gameStatus, Timestamp gameTime, Integer homeResultScore, Integer awayResultScore, BroadcastChannel broadcastChannel, Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore, Double homeWinPer, Double awayWinPer) {
+        this.id = id;
+        this.stadium = stadium;
+        this.awayTeam = awayTeam;
+        this.homeTeam = homeTeam;
+        this.gameStatus = gameStatus;
+        this.gameTime = gameTime;
+        this.homeResultScore = homeResultScore;
+        this.awayResultScore = awayResultScore;
+        this.broadcastChannel = broadcastChannel;
+        this.homePredictionScore = homePredictionScore;
+        this.awayPredictionScore = awayPredictionScore;
+        this.totalPredictionScore = totalPredictionScore;
+        this.homeWinPer = homeWinPer;
+        this.awayWinPer = awayWinPer;
+    }
 }

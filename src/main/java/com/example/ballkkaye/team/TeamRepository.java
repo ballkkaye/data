@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 @Repository
 public class TeamRepository {
+    
     private final EntityManager em;
 
     public Team findById(Integer teamId) {
