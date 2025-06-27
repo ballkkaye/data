@@ -16,4 +16,13 @@ public class TeamRecordRepository {
             em.persist(teamRecord);
         }
     }
+
+    public List<TeamRecord> findLatest10() {
+        return em.createQuery(
+                        "SELECT tr FROM TeamRecord tr ORDER BY tr.createdAt DESC, tr.teamRank ASC",
+                        TeamRecord.class
+                )
+                .setMaxResults(10)
+                .getResultList();
+    }
 }
