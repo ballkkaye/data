@@ -5,6 +5,7 @@ import com.example.ballkkaye.common.enums.GameStatus;
 import com.example.ballkkaye.stadium.Stadium;
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -63,4 +64,33 @@ public class TodayGame {
 
     @CreationTimestamp
     private Timestamp createdAt;
+
+    @Builder
+    public TodayGame(Stadium stadium,
+                     Team homeTeam,
+                     Team awayTeam,
+                     Timestamp gameTime,
+                     GameStatus gameStatus,
+                     Integer homeResultScore,
+                     Integer awayResultScore,
+                     BroadcastChannel broadcastChannel,
+                     Double homePredictionScore,
+                     Double awayPredictionScore,
+                     Double totalPredictionScore,
+                     Double homeWinPer,
+                     Double awayWinPer) {
+        this.stadium = stadium;
+        this.homeTeam = homeTeam;
+        this.awayTeam = awayTeam;
+        this.gameTime = gameTime;
+        this.gameStatus = gameStatus;
+        this.homeResultScore = homeResultScore;
+        this.awayResultScore = awayResultScore;
+        this.broadcastChannel = broadcastChannel;
+        this.homePredictionScore = homePredictionScore;
+        this.awayPredictionScore = awayPredictionScore;
+        this.totalPredictionScore = totalPredictionScore;
+        this.homeWinPer = homeWinPer;
+        this.awayWinPer = awayWinPer;
+    }
 }

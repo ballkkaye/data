@@ -25,7 +25,7 @@ public class GameController {
     }
 
     // 관리자용
-    @GetMapping("/s/admin/bot/gameCrawlAndSave")
+    @GetMapping("/admin/bot/gameCrawlAndSave")
     public ResponseEntity<String> adminSave() {
         gameService.save();
         return ResponseEntity.ok("ok");
