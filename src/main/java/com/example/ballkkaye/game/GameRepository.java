@@ -49,4 +49,8 @@ public class GameRepository {
         }
     }
 
+
+    public Game findById() {
+        return null;
+    }
 }
