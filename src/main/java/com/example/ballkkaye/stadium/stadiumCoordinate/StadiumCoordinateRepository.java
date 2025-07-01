@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class StadiumCoordinateRepository {
     private final EntityManager em;
+
+    public StadiumCoordinate findByStadiumId(Integer stadiumId) {
+        return em.find(StadiumCoordinate.class, stadiumId);
+    }
 }
