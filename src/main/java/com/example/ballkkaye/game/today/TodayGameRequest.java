@@ -2,6 +2,7 @@ package com.example.ballkkaye.game.today;
 
 import com.example.ballkkaye.common.enums.BroadcastChannel;
 import com.example.ballkkaye.common.enums.GameStatus;
+import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.stadium.Stadium;
 import com.example.ballkkaye.team.Team;
 import lombok.Data;
@@ -22,11 +23,14 @@ public class TodayGameRequest {
         private BroadcastChannel broadcastChannel;
         private Double homeWinPer;
         private Double awayWinPer;
+        private Double homePredictionScore;
+        private Double awayPredictionScore;
+
+        private Game game;
 
         public TodayGame toEntity() {
-            Double total = (homeWinPer != null && awayWinPer != null)
-                    ? homeWinPer + awayWinPer : null;
-
+            Double total = (homePredictionScore != null && awayPredictionScore != null)
+                    ? homePredictionScore + awayPredictionScore : null;
             return TodayGame.builder()
                     .stadium(stadium)
                     .homeTeam(homeTeam)
@@ -36,12 +40,14 @@ public class TodayGameRequest {
                     .homeResultScore(homeResultScore)
                     .awayResultScore(awayResultScore)
                     .broadcastChannel(broadcastChannel)
-                    .homePredictionScore(null)
-                    .awayPredictionScore(null)
+                    .homePredictionScore(homePredictionScore)
+                    .awayPredictionScore(awayPredictionScore)
                     .totalPredictionScore(total)
                     .homeWinPer(homeWinPer)
                     .awayWinPer(awayWinPer)
+                    .game(game)
                     .build();
         }
     }
+
 }

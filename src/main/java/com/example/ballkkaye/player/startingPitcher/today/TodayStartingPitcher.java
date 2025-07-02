@@ -3,6 +3,7 @@ package com.example.ballkkaye.player.startingPitcher.today;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.player.Player;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -44,4 +45,17 @@ public class TodayStartingPitcher {
 
     @CreationTimestamp
     private Timestamp createdAt;
+
+    @Builder
+    public TodayStartingPitcher(Integer id, Game game, Player player, String profileUrl, Double ERA, Integer gameCount, String result, Integer QS, Double WHIP) {
+        this.id = id;
+        this.game = game;
+        this.player = player;
+        this.profileUrl = profileUrl;
+        this.ERA = ERA;
+        this.gameCount = gameCount;
+        this.result = result;
+        this.QS = QS;
+        this.WHIP = WHIP;
+    }
 }

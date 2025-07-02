@@ -2,6 +2,7 @@ package com.example.ballkkaye.game.today;
 
 import com.example.ballkkaye.common.enums.BroadcastChannel;
 import com.example.ballkkaye.common.enums.GameStatus;
+import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.stadium.Stadium;
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
@@ -29,6 +30,10 @@ public class TodayGame {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Team awayTeam;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_id")
+    private Game game;
 
     @Column(nullable = false)
     private Timestamp gameTime;
@@ -78,7 +83,8 @@ public class TodayGame {
                      Double awayPredictionScore,
                      Double totalPredictionScore,
                      Double homeWinPer,
-                     Double awayWinPer) {
+                     Double awayWinPer,
+                     Game game) {
         this.stadium = stadium;
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
@@ -92,5 +98,7 @@ public class TodayGame {
         this.totalPredictionScore = totalPredictionScore;
         this.homeWinPer = homeWinPer;
         this.awayWinPer = awayWinPer;
+        this.game = game;
     }
+
 }
