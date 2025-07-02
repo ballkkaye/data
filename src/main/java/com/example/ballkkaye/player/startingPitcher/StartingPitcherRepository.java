@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -17,17 +16,5 @@ public class StartingPitcherRepository {
         for (StartingPitcher entity : entities) {
             em.persist(entity);
         }
-    }
-    
-    public List<StartingPitcher> findByGameDate(Timestamp startOfDay, Timestamp endOfDay) {
-        return em.createQuery("""
-                            SELECT s
-                            FROM StartingPitcher s
-                            WHERE s.game.gameTime >= :startOfDay
-                              AND s.game.gameTime < :endOfDay
-                        """, StartingPitcher.class)
-                .setParameter("startOfDay", startOfDay)
-                .setParameter("endOfDay", endOfDay)
-                .getResultList();
     }
 }
