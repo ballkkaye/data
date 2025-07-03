@@ -17,4 +17,15 @@ public class PlayerRepository {
             em.persist(player);
         }
     }
+
+    public Player findByKboPlayerId(Integer kboPlayerId) {
+        try {
+            return em.createQuery("SELECT p FROM Player p WHERE p.kboPlayerId = :kboPlayerId", Player.class)
+                    .setParameter("kboPlayerId", kboPlayerId)
+                    .getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -15,7 +15,7 @@ public class UtilMapper {
     }
 
     private static final Map<String, Integer> stadiumNameToId;
-    
+
     static {
         stadiumNameToId = new HashMap<>();
         stadiumNameToId.put("잠실", 1);
@@ -36,4 +36,24 @@ public class UtilMapper {
     public static Integer getStadiumId(String shortName) {
         return stadiumNameToId.get(shortName);
     }
+
+    // KBO teamCode와 매핑
+    private static final Map<String, Integer> teamCodeToId = Map.of(
+            "LG", 1,   // LG 트윈스
+            "OB", 2,   // 두산 베어스
+            "WO", 3,   // 키움 히어로즈
+            "SK", 4,   // SSG 랜더스
+            "HT", 5,   // KIA 타이거즈
+            "SS", 6,   // 삼성 라이온즈
+            "LT", 7,   // 롯데 자이언츠
+            "HH", 8,   // 한화 이글스
+            "NC", 9,   // NC 다이노스
+            "KT", 10   // KT 위즈
+    );
+
+
+    public static Integer getTeamIdByCode(String code) {
+        return teamCodeToId.get(code);
+    }
+
 }
