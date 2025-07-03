@@ -2,6 +2,8 @@ package com.example.ballkkaye.weather.weatherUltra;
 
 import com.example.ballkkaye.common.enums.WFCD;
 import com.example.ballkkaye.common.enums.WindDirection;
+import com.example.ballkkaye.game.Game;
+import com.example.ballkkaye.stadium.Stadium;
 import com.example.ballkkaye.weather.WeatherRequest;
 import lombok.Data;
 
@@ -12,8 +14,8 @@ public class WeatherUltraRequest {
 
     @Data
     public static class SaveDTO {
-        private Integer gameId; // 경기id
-        private Integer stadiumId; // 구장id
+        private Game game; // 경기
+        private Stadium stadium; // 구장
         private List<WeatherRequest.SaveDTO.WeatherDTO> weatherDTOS;
 
 
@@ -41,11 +43,11 @@ public class WeatherUltraRequest {
             }
         }
 
-        public SaveDTO(Integer gameId, Integer stadiumId, List<WeatherRequest.SaveDTO.WeatherDTO> weatherDTOS) {
-            this.gameId = gameId;
-            this.stadiumId = stadiumId;
+
+        public SaveDTO(Game game, Stadium stadium, List<WeatherRequest.SaveDTO.WeatherDTO> weatherDTOS) {
+            this.game = game;
+            this.stadium = stadium;
             this.weatherDTOS = weatherDTOS;
         }
-
     }
 }
