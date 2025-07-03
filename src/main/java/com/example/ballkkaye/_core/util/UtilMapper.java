@@ -39,7 +39,7 @@ public class UtilMapper {
 
     // KBO teamCode와 매핑
     private static final Map<String, Integer> teamCodeToId = Map.of(
-            "LG", 1,   // LG 트윈스Add commentMore actions
+            "LG", 1,   // LG 트윈스
             "OB", 2,   // 두산 베어스
             "WO", 3,   // 키움 히어로즈
             "SK", 4,   // SSG 랜더스
@@ -55,4 +55,5 @@ public class UtilMapper {
     public static Integer getTeamIdByCode(String code) {
         return teamCodeToId.get(code);
     }
+
 }

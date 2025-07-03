@@ -63,7 +63,8 @@ public class StartingPitcherService {
             opts.addArguments("--disable-extensions");     // 확장기능 제거
 
             driver = new ChromeDriver(opts);
-            driver.get("https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=" + targetDate); //);
+            driver.get("https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=" + targetDate);
+
 
             /* 경기 리스트(li.game-cont) 로딩 대기 (최대 10초) */
             new WebDriverWait(driver, Duration.ofSeconds(10))
