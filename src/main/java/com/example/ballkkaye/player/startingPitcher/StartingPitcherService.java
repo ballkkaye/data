@@ -51,7 +51,7 @@ public class StartingPitcherService {
         try {
             /* 1) GameCenter 접속 (내일 날짜) */
             String targetDate = LocalDate.now()
-                    .plusDays(1)
+//                    .plusDays(1)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             System.out.println("[DEBUG] 크롤링 대상 날짜 (targetDate): " + targetDate); // 디버깅: 크롤링 대상 날짜 출력
 
@@ -64,6 +64,7 @@ public class StartingPitcherService {
 
             driver = new ChromeDriver(opts);
             driver.get("https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=" + targetDate);
+
 
             /* 경기 리스트(li.game-cont) 로딩 대기 (최대 10초) */
             new WebDriverWait(driver, Duration.ofSeconds(10))

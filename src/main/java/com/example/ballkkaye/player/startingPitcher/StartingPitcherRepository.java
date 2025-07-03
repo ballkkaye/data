@@ -19,6 +19,7 @@ public class StartingPitcherRepository {
         }
     }
 
+
     public List<StartingPitcher> findByGameDate(Timestamp startOfDay, Timestamp endOfDay) {
         return em.createQuery("""
                             SELECT s

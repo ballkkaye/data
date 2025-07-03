@@ -1,6 +1,5 @@
 package com.example.ballkkaye.player.startingPitcher.today;
 
-import com.example.ballkkaye.game.GameRepository;
 import com.example.ballkkaye.player.startingPitcher.StartingPitcher;
 import com.example.ballkkaye.player.startingPitcher.StartingPitcherRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.util.List;
 public class TodayStartingPitcherService {
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
     private final StartingPitcherRepository startingPitcherRepository;
-    private final GameRepository gameRepository;
 
     @Transactional
     public void copyTodayStartingPitchers() {
@@ -62,3 +60,6 @@ public class TodayStartingPitcherService {
         System.out.println("오늘 선발투수 " + copied.size() + "명 복사 완료");  // TODO: 로그 관리
     }
 }
+
+
+
