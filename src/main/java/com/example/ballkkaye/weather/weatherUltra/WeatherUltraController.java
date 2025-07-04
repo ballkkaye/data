@@ -13,10 +13,10 @@ public class WeatherUltraController {
 
     /**
      * 화요일~일요일 + 요일마다 13~18시 + 10분 간격 실행
-     * 평일, 주말마다 유동적인 경기시간에 대응
+     * 평일, 주말마다 유동적인 경기시간 & 더블헤더에 대응
      */
     // 초단기예보 insert
-    @Scheduled(cron = "0 */10 13-18 ? * 2-7")
+    @Scheduled(cron = "0 */10 13-18 ? * *")
     public void getUltraWeather() {
         weatherUltraService.getUltraForecastAndSave();
     }
