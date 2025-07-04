@@ -53,7 +53,6 @@ public class WeatherUltraService {
             if (!now.isBefore(gameDateTime.minusHours(1).minusMinutes(5)) &&
                     !now.isAfter(gameDateTime.minusHours(1).plusMinutes(5))) {
                 processUltraForecastForGame(game, authKey);
-                System.out.println("🎯 예보 처리됨: gameId=" + game.getId() + ", now=" + now); // 확인용
             }
 
         }
