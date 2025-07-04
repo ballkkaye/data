@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 
@@ -21,6 +22,9 @@ public class TodayGame {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(unique = true)
+    private String gameCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Stadium stadium;
@@ -70,8 +74,13 @@ public class TodayGame {
     @CreationTimestamp
     private Timestamp createdAt;
 
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Timestamp updatedAt;
+
     @Builder
-    public TodayGame(Stadium stadium,
+    public TodayGame(String gameCode,
+                     Stadium stadium,
                      Team homeTeam,
                      Team awayTeam,
                      Timestamp gameTime,
@@ -85,6 +94,7 @@ public class TodayGame {
                      Double homeWinPer,
                      Double awayWinPer,
                      Game game) {
+        this.gameCode = gameCode;
         this.stadium = stadium;
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
@@ -101,4 +111,11 @@ public class TodayGame {
         this.game = game;
     }
 
+    public void update(GameStatus gameStatus,
+                       Integer homeResultScore,
+                       Integer awayResultScore) {
+        this.gameStatus = gameStatus;
+        this.homeResultScore = homeResultScore;
+        this.awayResultScore = awayResultScore;
+    }
 }

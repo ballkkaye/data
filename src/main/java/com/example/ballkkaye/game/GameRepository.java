@@ -78,5 +78,25 @@ public class GameRepository {
                 .getResultList();
     }
 
+    public boolean existsByGameCode(String gameCode) {
+        Long count = em.createQuery("""
+                            SELECT COUNT(g)
+                            FROM Game g
+                            WHERE g.gameCode = :gameCode
+                        """, Long.class)
+                .setParameter("gameCode", gameCode)
+                .getSingleResult();
+        return count > 0;
+    }
+
+    public Game findByGameCode(String gameCode) {
+        List<Game> result = em.createQuery(
+                        "SELECT t FROM TodayGame t WHERE t.gameCode = :gameCode", Game.class)
+                .setParameter("gameCode", gameCode)
+                .getResultList();
+
+        return result.isEmpty() ? null : result.get(0);
+    }
+
 
 }

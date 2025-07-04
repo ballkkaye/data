@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 public class TodayGameRequest {
 
     @Data
-    public static class SaveRequest {
+    public static class Save {
         private Stadium stadium;
         private Team homeTeam;
         private Team awayTeam;
@@ -50,4 +50,11 @@ public class TodayGameRequest {
         }
     }
 
+    @Data
+    public static class Update {
+        private String gameCode;
+        private GameStatus gameStatus;
+        private Integer homeResultScore;
+        private Integer awayResultScore;
+    }
 }
