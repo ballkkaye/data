@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -20,14 +21,7 @@ public class TodayHitterLineupService {
     public void copyTodayLineupFromHitterLineup() {
         LocalDate today = LocalDate.now();
 
-        // 1. 이미 TodayHitterLineup에 오늘 날짜 라인업이 있으면 skip
-        boolean exists = todayHitterLineUpRepository.existsByGameDate(today);
-        if (exists) {
-            System.out.println("⚠️ 이미 오늘 날짜 라인업이 존재합니다. 복사하지 않습니다.");
-            return;
-        }
-
-        // 2. HitterLineup에서 오늘 날짜 라인업 조회 (game.gameTime 기준)
+        // 1. HitterLineup에서 오늘 날짜 라인업 전체 조회
         List<HitterLineup> todayLineups = hitterLineupRepository.findByGameDate(today);
 
         if (todayLineups.isEmpty()) {
@@ -35,20 +29,32 @@ public class TodayHitterLineupService {
             return;
         }
 
-        // 3. 변환 및 저장
-        List<TodayHitterLineup> toSave = todayLineups.stream().map(h -> TodayHitterLineup.builder()
-                .game(h.getGame())
-                .team(h.getTeam())
-                .player(h.getPlayer())
-                .todayHitterOrder(h.getHitterOrder())
-                .position(h.getPosition())
-                .seasonAvg(h.getSeasonAvg())
-                .ab(h.getAb())
-                .h(h.getH())
-                .avg(h.getAvg())
-                .ops(h.getOps())
-                .build()
-        ).toList();
+        // 2. 중복 제거하며 복사
+        List<TodayHitterLineup> toSave = new ArrayList<>();
+        for (HitterLineup h : todayLineups) {
+            if (todayHitterLineUpRepository.existsByGameIdAndPlayerId(
+                    h.getGame().getId(), h.getPlayer().getId())) {
+                continue;
+            }
+
+            toSave.add(TodayHitterLineup.builder()
+                    .game(h.getGame())
+                    .team(h.getTeam())
+                    .player(h.getPlayer())
+                    .todayHitterOrder(h.getHitterOrder())
+                    .position(h.getPosition())
+                    .seasonAvg(h.getSeasonAvg())
+                    .ab(h.getAb())
+                    .h(h.getH())
+                    .avg(h.getAvg())
+                    .ops(h.getOps())
+                    .build());
+        }
+
+        if (toSave.isEmpty()) {
+            System.out.println("⏩ 이미 모든 라인업이 저장되어 있습니다.");
+            return;
+        }
 
         todayHitterLineUpRepository.saveAll(toSave);
         System.out.printf("✅ TodayHitterLineup으로 %d개 복사 완료\n", toSave.size());

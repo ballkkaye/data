@@ -10,12 +10,7 @@ public class TodayHitterLineupController {
     private final TodayHitterLineupService todayHitterLineUpService;
 
 
-    //@Scheduled(cron = "0 */10 17-18 * * MON-FRI") // 평일 17:00 ~ 18:59 매 10분
-    public void copyTodayLineupFromHitterLineupWeekday() {
-        todayHitterLineUpService.copyTodayLineupFromHitterLineup();
-    }
-
-    //@Scheduled(cron = "0 */10 17-18 * * MON-FRI") // 평일 17:00 ~ 18:59 매 10분
+    //@Scheduled(cron = "0 */5 13-18 * * *") // 매일 13:00~18:59까지 5분 간격
     public void copyTodayLineupFromHitterLineupWeekend() {
         todayHitterLineUpService.copyTodayLineupFromHitterLineup();
     }

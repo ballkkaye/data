@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -24,14 +23,16 @@ public class TodayHitterLineupRepository {
 
 
     /**
-     * 특정 날짜 기준으로 TodayHitterLineup 데이터가 존재하는지 여부 확인
+     * 특정 게임에서 특정 선수가 이미 TodayHitterLineup에 존재하는지 여부 확인
+     * - gameId, playerId 기준 중복 저장 방지 용도
      */
-    public boolean existsByGameDate(LocalDate date) {
+    public boolean existsByGameIdAndPlayerId(Integer gameId, Integer playerId) {
         Long count = em.createQuery("""
                         SELECT COUNT(t) FROM TodayHitterLineup t
-                        WHERE DATE(t.game.gameTime) = :today
+                        WHERE t.game.id = :gameId AND t.player.id = :playerId
                         """, Long.class)
-                .setParameter("today", date)
+                .setParameter("gameId", gameId)
+                .setParameter("playerId", playerId)
                 .getSingleResult();
 
         return count > 0;
