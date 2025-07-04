@@ -59,15 +59,29 @@ public class TodayGameService {
             if (homeRecord == null || awayRecord == null) continue;
 
             Integer stadiumId = game.getStadium().getId();
-            Double correction = stadiumCorrectionRepository.getCorrectionByStadiumIdAndYear(stadiumId, LocalDate.now(ZoneId.of("Asia/Seoul")).getYear());
+            Double correction = stadiumCorrectionRepository.getCorrectionByStadiumIdAndYear(
+                    stadiumId,
+                    LocalDate.now(ZoneId.of("Asia/Seoul")).getYear()
+            ).orElseThrow(() -> {
+                System.out.println("[WARN] 보정값을 찾을 수 없습니다 (stadiumId: " + stadiumId + ")");
+                return new RuntimeException("구장 보정값 조회 실패");
+            });
 
             Double homeOps = homeRecord.getOPS();
             Double awayOps = awayRecord.getOPS();
 
             if (homeOps == null || awayOps == null) continue;
 
-            Double homePitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, home);
-            Double awayPitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, away);
+            Double homePitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, home)
+                    .orElseThrow(() -> {
+                        System.out.println("[WARN] home 선발투수 ERA를 찾을 수 없습니다 (gameId: " + game.getId() + ", team: " + home.getTeamName() + ")");
+                        return new RuntimeException("home 선발투수 ERA 조회 실패");
+                    });
+            Double awayPitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, away)
+                    .orElseThrow(() -> {
+                        System.out.println("[WARN] away 선발투수 ERA를 찾을 수 없습니다 (gameId: " + game.getId() + ", team: " + away.getTeamName() + ")");
+                        return new RuntimeException("away 선발투수 ERA 조회 실패");
+                    });
 
             if (homePitcherEra == null || homePitcherEra == 0.0) homePitcherEra = avgEra;
             if (awayPitcherEra == null || awayPitcherEra == 0.0) awayPitcherEra = avgEra;

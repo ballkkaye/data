@@ -135,7 +135,8 @@ public class TeamRecordService {
         List<TeamRecord> entities = new ArrayList<>();
 
         for (TeamRecordRequest.Dto dto : dtoList) {
-            Team team = teamRepository.findById(dto.getTeamId());
+            Team team = teamRepository.findById(dto.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다: id"));
 
             TeamRecord entity = TeamRecord.builder()
                     .team(team)
@@ -263,7 +264,8 @@ public class TeamRecordService {
 
         for (TeamRecordRequest.Dto dto : dtoList) {
             // teamId로 Team 객체 조회
-            Team team = teamRepository.findById(dto.getTeamId());
+            Team team = teamRepository.findById(dto.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다"));
 
             // 생성자 또는 Builder 사용 가능
             TeamRecord entity = TeamRecord.builder()

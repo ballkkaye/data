@@ -103,21 +103,22 @@ public class StartingPitcherService {
                     continue;
                 }
 
-                Game game = gameRepository.findGameByDateAndTeams(gameDate, homeTeamDbId, awayTeamDbId);
-                if (game == null) {
-                    System.out.println("[WARN] Game 테이블에서 날짜=" + gameDate + ", 홈팀=" + homeTeamDbId + ", 어웨이팀=" + awayTeamDbId + " 로 경기 ID 찾을 수 없음");
-                    continue;
-                }
+                Game game = gameRepository.findGameByDateAndTeams(gameDate, homeTeamDbId, awayTeamDbId)
+                        .orElseThrow(() -> {
+                            System.out.println("[WARN] Game 테이블에서 날짜=" + gameDate + ", 홈팀=" + homeTeamDbId + ", 어웨이팀=" + awayTeamDbId + " 로 경기 ID 찾을 수 없음");
+                            return new RuntimeException("해당 조건의 경기를 찾을 수 없습니다");
+                        });
+
 
                 for (String teamType : List.of("away", "home")) {
                     int idx = teamType.equals("away") ? 0 : 1;
                     Integer kboPlayerId = Integer.parseInt(teamType.equals("away") ? awayPitId : homePitId);
 
-                    Player player = playerRepository.findByKboPlayerId(kboPlayerId);
-                    if (player == null) {
-                        System.out.println("[WARN] Player 테이블에 KBO playerId " + kboPlayerId + " 없음");
-                        continue;
-                    }
+                    Player player = playerRepository.findByKboPlayerId(kboPlayerId)
+                            .orElseThrow(() -> {
+                                System.out.println("[WARN] Player 테이블에 KBO playerId " + kboPlayerId + " 없음");
+                                return new RuntimeException("선수를 찾을 수 없습니다");
+                            });
                     System.out.println("[DEBUG] Player 테이블에서 찾은 playerId: " + player.getId() + " (KBO playerId: " + kboPlayerId + ")");
 
                     JsonArray row = api.getAsJsonArray("rows")

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -26,13 +27,13 @@ public class GameRepository {
         return game;
     }
 
-    public Game findGameByDateAndTeams(String gameDate, Integer homeTeamId, Integer awayTeamId) {
+    public Optional<Game> findGameByDateAndTeams(String gameDate, Integer homeTeamId, Integer awayTeamId) {
         try {
             LocalDate date = LocalDate.parse(gameDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
             Timestamp startOfDay = Timestamp.valueOf(date.atStartOfDay());
             Timestamp endOfDay = Timestamp.valueOf(date.plusDays(1).atStartOfDay());
 
-            return em.createQuery("""
+            Game game = em.createQuery("""
                                 SELECT g
                                 FROM Game g
                                 WHERE g.gameTime >= :startOfDay
@@ -46,9 +47,9 @@ public class GameRepository {
                     .setParameter("awayTeamId", awayTeamId)
                     .getSingleResult();
 
+            return Optional.of(game);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return Optional.empty(); // 실패 시 빈 Optional 반환
         }
     }
 
@@ -76,6 +77,17 @@ public class GameRepository {
                 .setParameter("start", start)
                 .setParameter("end", end)
                 .getResultList();
+    }
+
+
+    // Game 단건 조회
+    public Optional<Game> findById(Integer id) {
+        try {
+            Game game = em.find(Game.class, id);
+            return Optional.ofNullable(game);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
 

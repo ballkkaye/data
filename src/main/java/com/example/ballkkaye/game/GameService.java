@@ -87,9 +87,14 @@ public class GameService {
                     if (exists) continue;
 
                     GameRequest.SaveDTO saveDTO = GameRequest.SaveDTO.fromGameData(gameData);
-                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId());
-                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId());
-                    Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId());
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new RuntimeException("구장을 찾을 수 없습니다: id=" + saveDTO.getStadiumId()));
+
+                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
+                            .orElseThrow(() -> new RuntimeException("Home 팀을 찾을 수 없습니다: id=" + saveDTO.getHomeTeamId()));
+
+                    Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
+                            .orElseThrow(() -> new RuntimeException("Away 팀을 찾을 수 없습니다: id=" + saveDTO.getAwayTeamId()));
 
                     Game game = Game.builder()
                             .stadium(stadium)

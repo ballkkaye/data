@@ -24,7 +24,7 @@ import java.util.List;
 public class PlayerService {
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
-    
+
     // 선수 목록 저장 로직
     @Transactional
     public void saveBot() {
@@ -124,7 +124,8 @@ public class PlayerService {
         List<Player> players = new ArrayList<>();
 
         for (PlayerRequest.Dto dto : matchedPlayers) {
-            Team team = teamRepository.findById(dto.getTeamId());
+            Team team = teamRepository.findById(dto.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다: id"));
 
             Player player = Player.builder()
                     .kboPlayerId(dto.getKboPlayerId())
