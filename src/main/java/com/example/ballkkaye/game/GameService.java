@@ -96,6 +96,7 @@ public class GameService {
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
                             .orElseThrow(() -> new RuntimeException("Away 팀을 찾을 수 없습니다: id=" + saveDTO.getAwayTeamId()));
 
+
                     Game game = Game.builder()
                             .stadium(stadium)
                             .homeTeam(homeTeam)

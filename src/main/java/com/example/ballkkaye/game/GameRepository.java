@@ -28,6 +28,7 @@ public class GameRepository {
         return game;
     }
 
+
     public Optional<Game> findGameByDateAndTeams(String gameDate, Integer homeTeamId, Integer awayTeamId) {
         try {
             LocalDate date = LocalDate.parse(gameDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -70,6 +71,7 @@ public class GameRepository {
         return count > 0;
     }
 
+
     public List<Game> todayGame(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
@@ -81,7 +83,6 @@ public class GameRepository {
     }
 
 
-    // Game 단건 조회
     public Optional<Game> findById(Integer id) {
         try {
             Game game = em.find(Game.class, id);
@@ -91,6 +92,13 @@ public class GameRepository {
         }
     }
 
+
+    /**
+     * 오늘 날짜 기준으로 진행 예정인 경기(Game)들을 조회
+     * - 기준: 오늘 자정(00:00)부터 내일 자정 직전(23:59:59.999)까지의 gameTime 범위
+     * - Timestamp 기반으로 정확한 시간 비교를 수행
+     * - 실패 시 빈 리스트 반환
+     */
     public List<Game> findByToday() {
         try {
             LocalDate today = LocalDate.now();
@@ -118,7 +126,6 @@ public class GameRepository {
     public List<Game> findByGameDateAndTeamCombination(LocalDate date, Integer homeTeamId, Integer awayTeamId) {
         Timestamp startOfDay = Timestamp.valueOf(date.atStartOfDay());
         Timestamp endOfDay = Timestamp.valueOf(date.plusDays(1).atStartOfDay());
-
         return em.createQuery("""
                             SELECT g
                             FROM Game g
@@ -133,5 +140,5 @@ public class GameRepository {
                 .setParameter("awayTeamId", awayTeamId)
                 .getResultList();
     }
-
 }
+

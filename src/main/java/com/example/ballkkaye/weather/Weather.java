@@ -5,6 +5,7 @@ import com.example.ballkkaye.common.enums.WindDirection;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.stadium.Stadium;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,9 +22,11 @@ public class Weather {
     private Integer id;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_id")
     private Game game;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "stadium_id")
     private Stadium stadium;
 
     @Column(nullable = false)
@@ -52,9 +55,22 @@ public class Weather {
     @Column(nullable = false)
     private Double rainAmount;
 
-    @Column(nullable = false)
-    private Double rainoutPer;
-
     @CreationTimestamp
     private Timestamp createdAt;
+
+    @Builder
+    public Weather(Integer id, Game game, Stadium stadium, Double temperature, Double windSpeed, WindDirection windDirection, WFCD weatherCode, Double rainPer, Double humidityPer, Timestamp forecastAt, Double rainAmount, Timestamp createdAt) {
+        this.id = id;
+        this.game = game;
+        this.stadium = stadium;
+        this.temperature = temperature;
+        this.windSpeed = windSpeed;
+        this.windDirection = windDirection;
+        this.weatherCode = weatherCode;
+        this.rainPer = rainPer;
+        this.humidityPer = humidityPer;
+        this.forecastAt = forecastAt;
+        this.rainAmount = rainAmount;
+        this.createdAt = createdAt;
+    }
 }

@@ -1,5 +1,7 @@
 package com.example.ballkkaye.weather.weatherUltra;
 
+import com.example.ballkkaye.game.Game;
+import com.example.ballkkaye.stadium.Stadium;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -30,8 +32,8 @@ public class WeatherUltraRepository {
      * 사용 목적:
      * - 초단기예보 저장 시, 기존 단기예보의 rainPer 값을 참조하기 위해 조회
      */
-    public List<WeatherUltra> findByStadiumIdAndForecastDateRange(
-            Integer stadiumId, LocalDate today, Timestamp start, Timestamp end) {
+    public List<WeatherUltra> findByStadiumAndForecastDateRange(
+            Stadium stadium, LocalDate today, Timestamp start, Timestamp end) {
 
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
@@ -39,11 +41,11 @@ public class WeatherUltraRepository {
         return em.createQuery("""
                         SELECT w
                         FROM WeatherUltra w
-                        WHERE w.stadiumId = :stadiumId
+                        WHERE w.stadium = :stadium
                           AND w.forecastAt BETWEEN :startOfDay AND :endOfDay
                           AND w.forecastAt BETWEEN :start AND :end
                         """, WeatherUltra.class)
-                .setParameter("stadiumId", stadiumId)
+                .setParameter("stadium", stadium)
                 .setParameter("startOfDay", Timestamp.valueOf(startOfDay))
                 .setParameter("endOfDay", Timestamp.valueOf(endOfDay))
                 .setParameter("start", start)
@@ -65,23 +67,23 @@ public class WeatherUltraRepository {
      * ±1분 내의 WeatherUltra 데이터를 조회한다.
      * 주로 중복 여부 확인 또는 업데이트 대상 조회에 사용됨.
      */
-    public WeatherUltra findByGameIdAndStadiumIdAndForecastAtNearTime(Integer gameId, Integer stadiumId, Timestamp forecastAt) {
+    public WeatherUltra findByGameAndStadiumAndForecastAtNearTime(
+            Game game, Stadium stadium, Timestamp forecastAt) {
+
         List<WeatherUltra> result = em.createQuery("""
                         SELECT w FROM WeatherUltra w
-                        WHERE w.gameId = :gameId
-                          AND w.stadiumId = :stadiumId
+                        WHERE w.game = :game
+                          AND w.stadium = :stadium
                           AND w.forecastAt BETWEEN :startTime AND :endTime
                         """, WeatherUltra.class)
-                // [1] 매개변수 바인딩: 경기 ID, 구장 ID, 시간 범위 (±1분)
-                .setParameter("gameId", gameId)
-                .setParameter("stadiumId", stadiumId)
+                .setParameter("game", game)
+                .setParameter("stadium", stadium)
                 .setParameter("startTime", Timestamp.valueOf(forecastAt.toLocalDateTime().minusMinutes(1)))
                 .setParameter("endTime", Timestamp.valueOf(forecastAt.toLocalDateTime().plusMinutes(1)))
                 .getResultList();
 
-        // [2] 결과가 존재하면 첫 번째 결과 반환, 없으면 null 반환
         return result.isEmpty() ? null : result.get(0);
     }
-
-
 }
+
+
