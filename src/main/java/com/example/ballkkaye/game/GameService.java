@@ -87,7 +87,8 @@ public class GameService {
                     if (exists) continue;
 
                     GameRequest.SaveDTO saveDTO = GameRequest.SaveDTO.fromGameData(gameData);
-                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId());
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId());
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId());
 

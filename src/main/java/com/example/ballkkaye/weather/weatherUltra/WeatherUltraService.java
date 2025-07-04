@@ -74,7 +74,8 @@ public class WeatherUltraService {
         Integer stadiumId = stadium.getId();
 
         // [2] 해당 구장의 위도/경도를 격자 좌표로 변환 (API 요청에 필요)
-        StadiumCoordinate coord = stadiumCoordinateRepository.findByStadiumId(stadiumId);
+        StadiumCoordinate coord = stadiumCoordinateRepository.findByStadiumId(stadiumId)
+                .orElseThrow(() -> new RuntimeException(("구장 위/경도 정보 없음")));
         Util.GridXY grid = Util.convertToGrid(coord.getLatitude(), coord.getLongitude());
 
         // [3] API 요청용 날짜/시간 파라미터 계산

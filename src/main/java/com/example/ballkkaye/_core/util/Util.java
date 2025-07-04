@@ -1,9 +1,6 @@
 package com.example.ballkkaye._core.util;
 
-import com.example.ballkkaye.common.enums.WFCD;
 import com.example.ballkkaye.common.enums.WindDirection;
-import com.example.ballkkaye.weather.WeatherRequest;
-import com.example.ballkkaye.weather.weatherUltra.WeatherUltraRequest;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -87,40 +84,6 @@ public class Util {
 
 
     /**
-     * 단일 예보 데이터 기반 우천 취소 확률 예측
-     */
-    public static double predictRainoutProbability(WeatherRequest.SaveDTO.WeatherDTO weather) {
-        double score = 0.0;
-
-        // 강수확률 비중: 최대 30점
-        if (weather.getRainPer() != null) {
-            score += weather.getRainPer() * 0.3;  // 예: 80% -> 24점
-        }
-
-        // 강수량 비중: 최대 50점 (5mm 이상이면 50점 고정)
-        if (weather.getRainAmount() != null) {
-            score += Math.min(weather.getRainAmount(), 5.0) * 10;  // 예: 2.5mm -> 25점
-        }
-
-        // 풍속: 10m/s 이상이면 10점
-        if (weather.getWindSpeed() != null && weather.getWindSpeed() >= 10.0) {
-            score += 10;
-        }
-
-        // 날씨코드가 비/눈인 경우 20점
-        if (weather.getWeatherCode() == WFCD.DB04) {
-            score += 20;
-        }
-
-        // 기온이 너무 낮은 경우 추가 점수 (예: 5도 이하)
-        if (weather.getTemperature() != null && weather.getTemperature() <= 5.0) {
-            score += 10;
-        }
-
-        return Math.min(score, 100.0);
-    }
-
-    /**
      * double 파싱에 실패할 경우 0.0 반환
      */
     public static double safeParseDouble(String value) {
@@ -129,21 +92,6 @@ public class Util {
         } catch (Exception e) {
             return 0.0;
         }
-    }
-
-    /**
-     * 초단기 + 단기 예보 조합 기반 우천 취소 확률 계산
-     */
-    public static double predictRainoutFromBoth(
-            WeatherUltraRequest.SaveDTO.WeatherDTO dto, Double rainPer
-    ) {
-        double rainAmount = dto.getRainAmount() != null ? dto.getRainAmount() : 0.0;
-        double humidity = dto.getHumidityPer() != null ? dto.getHumidityPer() : 0.0;
-        double wind = dto.getWindSpeed() != null ? dto.getWindSpeed() : 0.0;
-        double rainProb = rainPer != null ? rainPer : 0.0;
-
-        double score = rainAmount * 1.5 + humidity * 0.3 + wind * 0.2 + rainProb * 0.4;
-        return Math.min(100.0, Math.round(score * 10.0) / 10.0);
     }
 
 

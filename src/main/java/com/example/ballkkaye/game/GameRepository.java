@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -27,10 +28,6 @@ public class GameRepository {
         return game;
     }
 
-
-    public Game findById(Integer id) {
-        return em.find(Game.class, id);
-    }
 
     // 오늘 날짜의 경기 전체 조회 (gameId, gameTime, stadiumId 포함)
     public List<Game> findByToday() {
@@ -108,5 +105,13 @@ public class GameRepository {
     }
 
 
+    public Optional<Game> findById(Integer id) {
+        try {
+            Game game = em.find(Game.class, id);
+            return Optional.ofNullable(game);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 }
 
