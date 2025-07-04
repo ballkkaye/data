@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,5 +91,47 @@ public class GameRepository {
         }
     }
 
+    public List<Game> findByToday() {
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDateTime start = today.atStartOfDay();
+            LocalDateTime end = today.plusDays(1).atStartOfDay();
+
+            return em.createQuery("""
+                                SELECT g FROM Game g
+                                WHERE g.gameTime >= :start AND g.gameTime < :end
+                            """, Game.class)
+                    .setParameter("start", Timestamp.valueOf(start))
+                    .setParameter("end", Timestamp.valueOf(end))
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+
+    /**
+     * 같은 날짜, 같은 홈/원정팀 조합으로 등록된 모든 경기 조회
+     * → 더블헤더 감지에 활용됨
+     */
+    public List<Game> findByGameDateAndTeamCombination(LocalDate date, Integer homeTeamId, Integer awayTeamId) {
+        Timestamp startOfDay = Timestamp.valueOf(date.atStartOfDay());
+        Timestamp endOfDay = Timestamp.valueOf(date.plusDays(1).atStartOfDay());
+
+        return em.createQuery("""
+                            SELECT g
+                            FROM Game g
+                            WHERE g.gameTime >= :startOfDay
+                              AND g.gameTime < :endOfDay
+                              AND g.homeTeam.id = :homeTeamId
+                              AND g.awayTeam.id = :awayTeamId
+                        """, Game.class)
+                .setParameter("startOfDay", startOfDay)
+                .setParameter("endOfDay", endOfDay)
+                .setParameter("homeTeamId", homeTeamId)
+                .setParameter("awayTeamId", awayTeamId)
+                .getResultList();
+    }
 
 }

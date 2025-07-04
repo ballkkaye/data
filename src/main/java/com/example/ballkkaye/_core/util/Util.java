@@ -40,11 +40,11 @@ public class Util {
      */
     public static Double parseSeasonAVG(List<WebElement> cols) {
         try {
-            String avgText = cols.get(cols.size() - 1).getText().trim(); // 예: ".294"
-            if (avgText.equals("-") || avgText.isEmpty()) return 0.0;
+            String avgText = cols.get(cols.size() - 1).getText().trim(); // 예: ".294", "-" 등
+            if (avgText.equals("-") || avgText.isEmpty()) return null; // 정보 없음은 null
             return Double.parseDouble(avgText);
         } catch (Exception e) {
-            return 0.0;
+            return null; // 파싱 실패도 null 처리
         }
     }
 

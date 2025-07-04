@@ -1,5 +1,6 @@
 package com.example.ballkkaye.player.hitterLineup;
 
+import com.example.ballkkaye.game.Game;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -99,5 +100,23 @@ public class HitterLineupRepository {
                         """, HitterLineup.class)
                 .setParameter("today", today)
                 .getResultList();
+    }
+
+
+    /**
+     * 특정 경기(Game)에 해당하는 라인업이 이미 존재하는지 확인
+     * - 중복 저장을 방지하기 위한 용도로 사용됨
+     * - 해당 경기 ID에 대한 라인업이 하나라도 존재하면 true 반환
+     */
+    public boolean existsByGame(Game game) {
+        Long count = em.createQuery("""
+                            SELECT COUNT(h)
+                            FROM HitterLineup h
+                            WHERE h.game = :game
+                        """, Long.class)
+                .setParameter("game", game)
+                .getSingleResult();
+
+        return count > 0;
     }
 }
