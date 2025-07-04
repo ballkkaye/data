@@ -55,14 +55,11 @@ public class Weather {
     @Column(nullable = false)
     private Double rainAmount;
 
-    @Column(nullable = false)
-    private Double rainoutPer;
-
     @CreationTimestamp
     private Timestamp createdAt;
 
     @Builder
-    public Weather(Integer id, Game game, Stadium stadium, Double temperature, Double windSpeed, WindDirection windDirection, WFCD weatherCode, Double rainPer, Double humidityPer, Timestamp forecastAt, Double rainAmount, Double rainoutPer, Timestamp createdAt) {
+    public Weather(Integer id, Game game, Stadium stadium, Double temperature, Double windSpeed, WindDirection windDirection, WFCD weatherCode, Double rainPer, Double humidityPer, Timestamp forecastAt, Double rainAmount, Timestamp createdAt) {
         this.id = id;
         this.game = game;
         this.stadium = stadium;
@@ -74,7 +71,6 @@ public class Weather {
         this.humidityPer = humidityPer;
         this.forecastAt = forecastAt;
         this.rainAmount = rainAmount;
-        this.rainoutPer = rainoutPer;
         this.createdAt = createdAt;
     }
 }

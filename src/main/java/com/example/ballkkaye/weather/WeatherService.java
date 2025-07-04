@@ -52,13 +52,13 @@ public class WeatherService {
         String authKey = "zFoyjf6aR62aMo3-muetCg";  // 기상청 API 인증키
 
         // 오늘 날짜 기준으로 열리는 경기 조회
-        List<Game> gamesToday = gameRepository.findByToday();
-        System.out.println("오늘 경기 수: " + gamesToday.size());
+        List<Game> todayGames = gameRepository.findByToday();
 
-        for (Game game : gamesToday) {
+        for (Game game : todayGames) {
             Integer gameId = game.getId();
             Timestamp gameTime = game.getGameTime();
-            Integer stadiumId = game.getStadium().getId();
+            Stadium stadium = game.getStadium();
+            Integer stadiumId = stadium.getId();
 
 
             // 해당 경기장의 위도/경도를 격자 좌표로 변환
@@ -106,7 +106,7 @@ public class WeatherService {
 
                     Timestamp forecastAt = Util.getForecastTimestamp(fcstDate, fcstTime);
                     WeatherRequest.SaveDTO.WeatherDTO dto = forecastMap.getOrDefault(forecastAt,
-                            new WeatherRequest.SaveDTO.WeatherDTO(null, null, null, null, null, null, forecastAt, null, null));
+                            new WeatherRequest.SaveDTO.WeatherDTO(null, null, null, null, null, null, forecastAt, null));
 
                     // 카테고리 값 파싱 및 DTO 매핑
                     switch (category) {
@@ -144,9 +144,6 @@ public class WeatherService {
                 List<Weather> weatherList = new ArrayList<>();
 
                 for (WeatherRequest.SaveDTO.WeatherDTO dto : forecastMap.values()) {
-                    // 우천 취소 확률 계산
-                    double rainoutPer = Util.predictRainoutProbability(dto);
-                    dto.setRainoutPer(rainoutPer);
                     Game g = gameRepository.findById(gameId);
                     Stadium s = stadiumRepository.findById(stadiumId);
 
@@ -162,7 +159,6 @@ public class WeatherService {
                             .weatherCode(dto.getWeatherCode())
                             .rainPer(dto.getRainPer())
                             .rainAmount(dto.getRainAmount())
-                            .rainoutPer(dto.getRainoutPer())
                             .build();
 
                     weatherList.add(entity);
@@ -178,7 +174,6 @@ public class WeatherService {
                                     🌧️ 강수확률: %s%%
                                     💧 강수량: %s mm
                                     ☁️ 날씨코드: %s
-                                    우천취소 가능성: %s
                                     ─────────────────────────────
                                     """,
                             gameId,
@@ -190,8 +185,7 @@ public class WeatherService {
                             dto.getWindDirection() != null ? dto.getWindDirection().getName() : "null",
                             dto.getRainPer(),
                             dto.getRainAmount(),
-                            dto.getWeatherCode() != null ? dto.getWeatherCode().getCode() : "null",
-                            dto.getRainoutPer() != null ? dto.getRainoutPer() + "%" : "실내 경기장"
+                            dto.getWeatherCode() != null ? dto.getWeatherCode().getCode() : "null"
                     );
 
                 }
@@ -239,7 +233,6 @@ public class WeatherService {
                         .weatherCode(w.getWeatherCode())
                         .rainAmount(w.getRainAmount())
                         .rainPer(w.getRainPer())
-                        .rainoutPer(w.getRainoutPer()) // 이미 예측된 확률
                         .build();
 
                 ultraList.add(ultra);

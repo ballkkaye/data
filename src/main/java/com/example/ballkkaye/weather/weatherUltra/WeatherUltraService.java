@@ -121,7 +121,7 @@ public class WeatherUltraService {
                 // 예보 시각 계산
                 Timestamp forecastAt = Util.getForecastTimestamp(fcstDate, fcstTime);
                 WeatherUltraRequest.SaveDTO.WeatherDTO dto = forecastMap.getOrDefault(forecastAt,
-                        new WeatherUltraRequest.SaveDTO.WeatherDTO(null, null, null, null, null, forecastAt, null, null));
+                        new WeatherUltraRequest.SaveDTO.WeatherDTO(null, null, null, null, null, forecastAt, null));
 
                 // 카테고리별로 DTO 필드 설정
                 switch (category) {
@@ -175,11 +175,7 @@ public class WeatherUltraService {
                         .findFirst()
                         .orElse(null);
 
-                // [8] 예측 강우로 인한 취소 확률 계산
-                double rainoutPer = Util.predictRainoutFromBoth(dto, rainPer);
-                dto.setRainoutPer(rainoutPer);
-
-                // [9] DTO → Entity 변환
+                // [8] DTO → Entity 변환
                 WeatherUltra entity = WeatherUltra.builder()
                         .game(game)
                         .stadium(stadium)
@@ -191,7 +187,6 @@ public class WeatherUltraService {
                         .weatherCode(dto.getWeatherCode())
                         .rainAmount(dto.getRainAmount())
                         .rainPer(rainPer)
-                        .rainoutPer(rainoutPer)
                         .build();
 
                 toSaveList.add(entity);
@@ -231,8 +226,7 @@ public class WeatherUltraService {
                         incoming.getWindDirection(),
                         incoming.getWeatherCode(),
                         incoming.getRainAmount(),
-                        incoming.getRainPer(),
-                        incoming.getRainoutPer()
+                        incoming.getRainPer()
                 );
             } else {
                 // [3] 존재하지 않으면 신규 엔티티로 저장

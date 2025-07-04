@@ -28,10 +28,9 @@ public class WeatherUltraRequest {
             private WindDirection windDirection;  // 날씨코드
             private Timestamp forecastAt; // 예보 시각
             private Double rainAmount; // 강수량
-            private Double rainoutPer;  // 경기취소 예측 확률
 
 
-            public WeatherDTO(Double temperature, Double humidityPer, Double windSpeed, WFCD weatherCode, WindDirection windDirection, Timestamp forecastAt, Double rainAmount, Double rainoutPer) {
+            public WeatherDTO(Double temperature, Double humidityPer, Double windSpeed, WFCD weatherCode, WindDirection windDirection, Timestamp forecastAt, Double rainAmount) {
                 this.temperature = temperature;
                 this.humidityPer = humidityPer;
                 this.windSpeed = windSpeed;
@@ -39,7 +38,7 @@ public class WeatherUltraRequest {
                 this.windDirection = windDirection;
                 this.forecastAt = forecastAt;
                 this.rainAmount = rainAmount;
-                this.rainoutPer = rainoutPer;
+
             }
         }
 
