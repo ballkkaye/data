@@ -35,14 +35,19 @@ public class GameRepository {
     // 오늘 날짜의 경기 전체 조회 (gameId, gameTime, stadiumId 포함)
     public List<Game> findByToday() {
         try {
-            String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate today = LocalDate.now(); // ex) 2025-07-04
+            LocalDateTime startOfDay = today.atStartOfDay(); // 2025-07-04 00:00:00
+            LocalDateTime endOfDay = today.plusDays(1).atStartOfDay(); // 2025-07-05 00:00:00
+
             return em.createQuery("""
                                 SELECT g
                                 FROM Game g
-                                WHERE FUNCTION('FORMATDATETIME', g.gameTime, 'yyyy-MM-dd') = :date
+                                WHERE g.gameTime >= :start AND g.gameTime < :end
                             """, Game.class)
-                    .setParameter("date", todayStr)
+                    .setParameter("start", Timestamp.valueOf(startOfDay))
+                    .setParameter("end", Timestamp.valueOf(endOfDay))
                     .getResultList();
+
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();

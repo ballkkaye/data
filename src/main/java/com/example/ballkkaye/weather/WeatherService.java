@@ -53,6 +53,7 @@ public class WeatherService {
 
         // 오늘 날짜 기준으로 열리는 경기 조회
         List<Game> gamesToday = gameRepository.findByToday();
+        System.out.println("오늘 경기 수: " + gamesToday.size());
 
         for (Game game : gamesToday) {
             Integer gameId = game.getId();
