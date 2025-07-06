@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.ballkkaye._core.util.Util.*;
 
@@ -45,6 +46,7 @@ public class HitterLineupService {
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
 
 
+    @Transactional
     public void crawlHitterLineUpsByGameTime() {
         LocalDateTime now = LocalDateTime.now();
         List<Game> todayGames = gameRepository.findByToday(); // 오늘 경기만 조회
@@ -54,34 +56,21 @@ public class HitterLineupService {
 
             // 경기 시작 1시간 전부터, 경기 시작 직전까지 허용
             if (!now.isBefore(gameTime.minusHours(1)) && now.isBefore(gameTime)) {
-                crawlSingleGameLineup(game);
+                crawlAndSaveSingleGameLineup(game);
             }
         }
     }
 
-
     @Transactional
-    public void crawlSingleGameLineup(Game game) {
-        // [0] 이미 저장된 경우 생략
-        if (hitterLineUpRepository.existsByGame(game)) {
-            System.out.printf("⏩ 라인업 이미 존재 → 크롤링 생략 (gameId=%d)%n", game.getId());
-            return;
+    public void crawlAndSaveSingleGameLineup(Game game) {
+        List<HitterLineup> entities = crawlSingleGameLineup(game);
+        if (!entities.isEmpty()) {
+            saveLineups(entities);
         }
+    }
 
-        // [1] 더블헤더 여부 확인
-        List<Game> sameDayGames = gameRepository.findByGameDateAndTeamCombination(
-                game.getGameTime().toLocalDateTime().toLocalDate(),
-                game.getHomeTeam().getId(),
-                game.getAwayTeam().getId());
-
-        boolean isDoubleHeader = sameDayGames.size() > 1;
-        if (isDoubleHeader) {
-            System.out.printf(" 더블헤더 감지 → gameId=%d (%s vs %s)\n",
-                    game.getId(),
-                    game.getAwayTeam().getTeamName(),
-                    game.getHomeTeam().getTeamName());
-        }
-
+    public List<HitterLineup> crawlSingleGameLineup(Game game) {
+        List<HitterLineup> allEntities = new ArrayList<>();
 
         WebDriverManager.chromedriver().setup();
         ChromeOptions opts = new ChromeOptions();
@@ -93,14 +82,11 @@ public class HitterLineupService {
             driver.get("https://www.koreabaseball.com/Default.aspx?vote=true");
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li.game-cont")));
 
-// [1] 우리가 가진 정보 준비
-            String dateStr = game.getGameTime().toLocalDateTime().toLocalDate()
-                    .format(DateTimeFormatter.ofPattern("yyyyMMdd"));  // "20250704"
-            String homeTeam = game.getHomeTeam().getTeamName().split(" ")[0]; // "두산"
-            String awayTeam = game.getAwayTeam().getTeamName().split(" ")[0]; // "SSG"
-            String stadiumName = simplifyStadiumName(game.getStadium().getStadiumName()); // "잠실"
+            String dateStr = game.getGameTime().toLocalDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String homeTeam = game.getHomeTeam().getTeamName().split(" ")[0];
+            String awayTeam = game.getAwayTeam().getTeamName().split(" ")[0];
+            String stadiumName = simplifyStadiumName(game.getStadium().getStadiumName());
 
-// [2] 요소 필터링
             WebElement targetGameElement = driver.findElements(By.cssSelector("li.game-cont")).stream()
                     .filter(el ->
                             dateStr.equals(el.getAttribute("g_dt")) &&
@@ -109,27 +95,13 @@ public class HitterLineupService {
                                     stadiumName.equals(el.getAttribute("s_nm"))
                     )
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException(String.format(
-                            "게임 요소를 찾을 수 없습니다 → 날짜: %s, 홈팀: %s, 원정팀: %s, 구장: %s",
-                            dateStr, homeTeam, awayTeam, stadiumName
-                    )));
+                    .orElseThrow(() -> new RuntimeException("게임 요소를 찾을 수 없습니다"));
 
-            // [1] 우천취소 여부 확인 (라인업 탭 클릭 전)
             String statusText = targetGameElement.findElement(By.cssSelector("p.staus")).getText().trim();
-            if (statusText.contains("경기취소")) {
-                System.out.printf("[%s vs %s] 우천취소 → 생략 (gameId=%d)\n",
-                        game.getAwayTeam().getTeamName().split(" ")[0],
-                        game.getHomeTeam().getTeamName().split(" ")[0],
-                        game.getId());
-                return;
-            }
+            if (statusText.contains("경기취소")) return allEntities;
 
-            // 경기 정보 준비
             Integer homeTeamId = game.getHomeTeam().getId();
             Integer awayTeamId = game.getAwayTeam().getId();
-
-
-            // 선발투수 조회
             String homePitcher = todayStartingPitcherRepository.findByGameIdAndTeam(game.getId(), homeTeam).get(0);
             String awayPitcher = todayStartingPitcherRepository.findByGameIdAndTeam(game.getId(), awayTeam).get(0);
 
@@ -150,16 +122,13 @@ public class HitterLineupService {
                         game.getAwayTeam().getTeamName(),
                         game.getHomeTeam().getTeamName(),
                         game.getId());
-                return;
             }
 
-            List<HitterLineup> allEntities = new ArrayList<>();
-            allEntities.addAll(extractLineups(driver, wait, game, awayTeamId, awayTeam, homeTeam, homePitcher, "#tableHitterB tbody tr"));
-            allEntities.addAll(extractLineups(driver, wait, game, homeTeamId, homeTeam, awayTeam, awayPitcher, "#tableHitterT tbody tr"));
-
-            if (!allEntities.isEmpty()) {
-                hitterLineUpRepository.saveAll(allEntities);
-                System.out.printf(" 라인업 저장 완료 (gameId=%s, 선수 %d명)\n", game.getId(), allEntities.size());
+            if (!driver.findElements(By.cssSelector("#tableHitterB tbody tr")).isEmpty()) {
+                allEntities.addAll(extractLineups(driver, wait, game, homeTeamId, homeTeam, awayTeam, awayPitcher, "#tableHitterB tbody tr"));
+            }
+            if (!driver.findElements(By.cssSelector("#tableHitterT tbody tr")).isEmpty()) {
+                allEntities.addAll(extractLineups(driver, wait, game, awayTeamId, awayTeam, homeTeam, homePitcher, "#tableHitterT tbody tr"));
             }
 
         } catch (Exception e) {
@@ -168,6 +137,8 @@ public class HitterLineupService {
         } finally {
             driver.quit();
         }
+
+        return allEntities;
     }
 
     private List<HitterLineup> extractLineups(WebDriver driver, WebDriverWait wait, Game game,
@@ -180,7 +151,7 @@ public class HitterLineupService {
             List<WebElement> cols = rows.get(i).findElements(By.cssSelector("th, td"));
             if (cols.size() < 4) continue;
 
-            String hitterName = cols.get(2).getText().trim();
+            String hitterName = cols.get(2).getText().replaceAll("\\s+", "").trim(); // 공백 전부 제거
             String position = cols.get(1).getText().trim();
             Double seasonAVG = parseSeasonAVG(cols);
 
@@ -189,100 +160,113 @@ public class HitterLineupService {
             Team team = teamRepository.findById(teamId)
                     .orElseThrow(() -> new RuntimeException("팀 없음"));
 
-            if (!hitterLineUpRepository.existsByGameIdAndPlayerId(game.getId(), player.getId())) {
-                HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO matchup =
-                        crawlMatchup(driver, wait, opponentTeam, opponentPitcher, hitterTeam, hitterName);
+            HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO matchup =
+                    crawlMatchup(opponentTeam, opponentPitcher, hitterTeam, hitterName);
 
-                entities.add(HitterLineup.builder()
-                        .game(game)
-                        .team(team)
-                        .player(player)
-                        .hitterOrder(i + 1)
-                        .position(position)
-                        .seasonAvg(seasonAVG)
-                        .ab(matchup != null ? matchup.getAb() : null)
-                        .h(matchup != null ? matchup.getH() : null)
-                        .avg(matchup != null ? matchup.getAvg() : null)
-                        .ops(matchup != null ? matchup.getOps() : null)
-                        .build());
-            }
+            entities.add(HitterLineup.builder()
+                    .game(game)
+                    .team(team)
+                    .player(player)
+                    .hitterOrder(i + 1)
+                    .position(position)
+                    .seasonAvg(seasonAVG)
+                    .ab(matchup != null ? matchup.getAb() : null)
+                    .h(matchup != null ? matchup.getH() : null)
+                    .avg(matchup != null ? matchup.getAvg() : null)
+                    .ops(matchup != null ? matchup.getOps() : null)
+                    .build());
         }
 
         return entities;
     }
 
+    @Transactional
+    public void saveLineups(List<HitterLineup> hitterLineups) {
+        hitterLineUpRepository.saveAll(hitterLineups);
+    }
 
-    // 투수와 타자 간의 맞대결 전적을 크롤링하여 DTO로 반환
-    // 내부 전용 메서드
     private HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO crawlMatchup(
-            WebDriver driver, WebDriverWait wait,
-            String pitcherTeamNm, String pitcherNm,
-            String hitterTeamNm, String hitterNm) {
-
-        // 셀레니움 드라이버 및 대기 설정
+            String pitcherTeamNm, String pitcherNm, String hitterTeamNm, String hitterNm) {
         ChromeOptions opts = new ChromeOptions();
-        opts.addArguments("--headless=new");
-        opts.addArguments("--disable-gpu");
-        opts.addArguments("--no-sandbox");
-        opts.addArguments("--disable-dev-shm-usage");
-        opts.addArguments("--disable-extensions");
-
+        opts.addArguments("--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
+        WebDriver driver = new ChromeDriver(opts);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         try {
-            // 맞대결 전적 페이지 접속
             driver.get("https://www.koreabaseball.com/Record/Etc/HitVsPit.aspx");
-
-            // 투수팀
             selectByContainingText(new Select(wait.until(ExpectedConditions.elementToBeClickable(
                     By.id("cphContents_cphContents_cphContents_ddlPitcherTeam")))), pitcherTeamNm);
 
-            // 투수
+            // 선수 목록 로딩 대기
+            wait.until(d -> {
+                Select s = new Select(d.findElement(By.id("cphContents_cphContents_cphContents_ddlPitcherPlayer")));
+                return s.getOptions().size() > 1;
+            });
+
+// 디버그 출력
+            Select pitcherSelect = new Select(driver.findElement(By.id("cphContents_cphContents_cphContents_ddlPitcherPlayer")));
+            for (WebElement option : pitcherSelect.getOptions()) {
+                System.out.println("[DEBUG] 투수 옵션: " + option.getText());
+                System.out.println("[DEBUG] 선수 옵션: '" + option.getText() + "'");
+            }
+
             selectByContainingText(new Select(wait.until(ExpectedConditions.elementToBeClickable(
                     By.id("cphContents_cphContents_cphContents_ddlPitcherPlayer")))), pitcherNm);
 
-            // 타자팀
-            selectByContainingText(new Select(wait.until(ExpectedConditions.elementToBeClickable(
-                    By.id("cphContents_cphContents_cphContents_ddlHitterTeam")))), hitterTeamNm);
+            Select hitterTeamSelect = new Select(wait.until(ExpectedConditions.elementToBeClickable(
+                    By.id("cphContents_cphContents_cphContents_ddlHitterTeam"))));
+            selectByContainingText(hitterTeamSelect, hitterTeamNm);
+            System.out.println("[DEBUG] 타자팀 선택 완료: " + hitterTeamNm);
 
-            // 타자
-            selectByContainingText(new Select(wait.until(ExpectedConditions.elementToBeClickable(
-                    By.id("cphContents_cphContents_cphContents_ddlHitterPlayer")))), hitterNm);
 
-            // 5. [검색] 버튼 클릭
+// [2] 타자 목록 로딩될 때까지 대기 (옵션 2개 이상 나올 때까지 → '타자' + 선수명 1명 이상)
+            wait.until(driver1 -> {
+                Select s = new Select(driver1.findElement(
+                        By.id("cphContents_cphContents_cphContents_ddlHitterPlayer")));
+                return s.getOptions().stream()
+                        .anyMatch(opt -> opt.getText().contains(hitterNm));
+            });
+
+
+// [3] 타자 옵션 확인
+            Select hitterSelect = new Select(wait.until(ExpectedConditions.elementToBeClickable(
+                    By.id("cphContents_cphContents_cphContents_ddlHitterPlayer"))));
+            for (WebElement option : hitterSelect.getOptions()) {
+                System.out.println("[DEBUG] 타자 옵션: '" + option.getText() + "'");
+            }
+            System.out.println("[DEBUG] 타자 키워드: " + hitterNm);
+
+// [4] 타자 선택
+            selectByContainingText(hitterSelect, hitterNm);
             driver.findElement(By.id("cphContents_cphContents_cphContents_btnSearch")).click();
 
-            // 6. 결과 테이블이 로딩될 때까지 대기
             wait.until(d -> Jsoup.parse(d.getPageSource())
                     .selectFirst("table.tData.tt tbody tr") != null);
 
-            // 7. HTML 파싱하여 첫 번째 row 추출
             Document doc = Jsoup.parse(driver.getPageSource());
-            Element row = doc.selectFirst("table.tData.tt tbody tr");
-
-            // 8. "기록이 없습니다" 메시지 확인 (대결 전적 없음)
-            if (row.select("td[colspan=15]").text().contains("기록이 없습니다")) {
+            Element noRecordCell = doc.selectFirst("table.tData.tt tbody tr td[colspan=15]");
+            if (noRecordCell != null && noRecordCell.text().contains("기록이 없습니다")) {
+                System.out.printf("전적 없음: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
                 return new HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO(null, null, null, null);
             }
 
-            // 9. 데이터 추출: 타율(avg), 타석수(ab), 안타수(h), OPS
+            Element row = doc.selectFirst("table.tData.tt tbody tr");
             Elements td = row.select("td");
             Integer ab = parseIntSafe(td.get(2).text());
             Integer h = parseIntSafe(td.get(3).text());
             double avg = parseDoubleSafe(td.get(0).text());
             double ops = parseDoubleSafe(td.get(13).text());
 
-            // 10. DTO로 반환
             return new HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO(ab, h, avg, ops);
 
         } catch (Exception e) {
-            // 예외 발생 시 로그 출력 후 null 반환
-            System.out.println(" 전적 조회 실패: " + hitterNm + " vs " + pitcherNm);
+            System.out.printf(" 전적 조회 실패: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
             return null;
         } finally {
-            // 브라우저 자원 해제
             driver.quit();
         }
     }
+
 
     public static String simplifyStadiumName(String fullName) {
         return switch (fullName.trim()) {

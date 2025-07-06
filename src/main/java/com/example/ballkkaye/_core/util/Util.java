@@ -18,14 +18,18 @@ public class Util {
      */
     public static void selectByContainingText(Select select, String keyword) {
         boolean found = false;
+        System.out.println("[DEBUG] keyword: " + keyword);
         for (WebElement option : select.getOptions()) {
+            System.out.println("[DEBUG] 옵션 텍스트: '" + option.getText() + "'");
             if (option.getText().contains(keyword)) {
                 select.selectByVisibleText(option.getText());
                 found = true;
                 break;
             }
         }
-        if (!found) throw new NoSuchElementException("드롭다운에서 '" + keyword + "' 포함된 옵션 없음");
+        if (!found) {
+            throw new NoSuchElementException("드롭다운에서 '" + keyword + "' 포함된 옵션 없음");
+        }
     }
 
 
