@@ -11,7 +11,6 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -89,7 +88,8 @@ public class GameService {
                     }
 
                     Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
-                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
+                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
                             .orElseThrow(() -> new RuntimeException("homeTeam 찾을 수 없음: id=" + saveDTO.getHomeTeamId()));
 
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
@@ -332,7 +332,8 @@ public class GameService {
                             gameData.getAwayResultScore()
                     );
                 } else {
-                    Optional<Stadium> stadium = stadiumRepository.findById(saveDTO.getStadiumId());
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
                             .orElseThrow(() -> new RuntimeException("homeTeam not found"));
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
