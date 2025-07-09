@@ -55,15 +55,12 @@ public class WeatherUltra {
     @Column(nullable = false)
     private Double rainAmount;
 
-    @Column(nullable = false)
-    private Double rainoutPer;
-
     @CreationTimestamp
     private Timestamp createdAt;
 
 
     @Builder
-    public WeatherUltra(Integer id, Game game, Stadium stadium, Double temperature, Double windSpeed, WindDirection windDirection, WFCD weatherCode, Double rainPer, Double humidityPer, Timestamp forecastAt, Double rainAmount, Double rainoutPer, Timestamp createdAt) {
+    public WeatherUltra(Integer id, Game game, Stadium stadium, Double temperature, Double windSpeed, WindDirection windDirection, WFCD weatherCode, Double rainPer, Double humidityPer, Timestamp forecastAt, Double rainAmount, Timestamp createdAt) {
         this.id = id;
         this.game = game;
         this.stadium = stadium;
@@ -75,7 +72,6 @@ public class WeatherUltra {
         this.humidityPer = humidityPer;
         this.forecastAt = forecastAt;
         this.rainAmount = rainAmount;
-        this.rainoutPer = rainoutPer;
         this.createdAt = createdAt;
     }
 
@@ -83,7 +79,7 @@ public class WeatherUltra {
     // update 함수
     public void update(Double temperature, Double humidityPer, Double windSpeed,
                        WindDirection windDirection, WFCD weatherCode,
-                       Double rainAmount, Double rainPer, Double rainoutPer) {
+                       Double rainAmount, Double rainPer) {
         this.temperature = temperature;
         this.humidityPer = humidityPer;
         this.windSpeed = windSpeed;
@@ -91,6 +87,5 @@ public class WeatherUltra {
         this.weatherCode = weatherCode;
         this.rainAmount = rainAmount;
         this.rainPer = rainPer;
-        this.rainoutPer = rainoutPer;
     }
 }

@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class GameService {
 
     private final GameRepository gameRepository;
@@ -89,8 +88,8 @@ public class GameService {
                         continue;
                     }
 
-                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId());
-                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
                             .orElseThrow(() -> new RuntimeException("homeTeam 찾을 수 없음: id=" + saveDTO.getHomeTeamId()));
 
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
@@ -180,6 +179,7 @@ public class GameService {
             Pattern spaced = Pattern.compile("([가-힣A-Z]+)vs([가-힣A-Z]+)\\s*(\\d+)[^\\d]?(\\d+)");
             Pattern plain = Pattern.compile("([가-힣A-Z]+)vs([가-힣A-Z]+)");
 
+            boolean matched = false;
             if (compact.matcher(rawGame).find()) {
                 Matcher m = compact.matcher(rawGame);
                 m.find();
@@ -332,7 +332,7 @@ public class GameService {
                             gameData.getAwayResultScore()
                     );
                 } else {
-                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId());
+                    Optional<Stadium> stadium = stadiumRepository.findById(saveDTO.getStadiumId());
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
                             .orElseThrow(() -> new RuntimeException("homeTeam not found"));
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
