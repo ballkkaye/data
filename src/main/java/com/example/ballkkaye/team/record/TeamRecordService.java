@@ -135,7 +135,8 @@ public class TeamRecordService {
         List<TeamRecord> entities = new ArrayList<>();
 
         for (TeamRecordRequest.Dto dto : dtoList) {
-            Team team = teamRepository.findById(dto.getTeamId());
+            Team team = teamRepository.findById(dto.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("team not found: id=" + dto.getTeamId()));
 
             TeamRecord entity = TeamRecord.builder()
                     .team(team)
@@ -152,6 +153,7 @@ public class TeamRecordService {
                     .R(dto.getR())
                     .ERA(dto.getERA())
                     .build();
+
             entities.add(entity);
         }
         if (entities.size() < 10) {
@@ -262,10 +264,9 @@ public class TeamRecordService {
         List<TeamRecord> entities = new ArrayList<>();
 
         for (TeamRecordRequest.Dto dto : dtoList) {
-            // teamId로 Team 객체 조회
-            Team team = teamRepository.findById(dto.getTeamId());
+            Team team = teamRepository.findById(dto.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("team not found: id=" + dto.getTeamId()));
 
-            // 생성자 또는 Builder 사용 가능
             TeamRecord entity = TeamRecord.builder()
                     .team(team)
                     .teamRank(dto.getTeamRank())

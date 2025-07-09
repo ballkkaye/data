@@ -16,12 +16,12 @@ public class TodayGameController {
     // 30분마다 자동 실행
     @Scheduled(cron = "0 0/30 * * * *", zone = "Asia/Seoul")
     public void scheduledUpdateTodayGames() {
-        todayGameService.updateTodayGames();
+        todayGameService.syncTodayGames();
     }
 
     @GetMapping("/api/admin/today-games/init")
     public ResponseEntity<?> initTodayGames() {
-        todayGameService.updateTodayGames();
+        todayGameService.syncTodayGames();
         return Resp.ok("오늘의 경기 갱신 완료");
     }
 }

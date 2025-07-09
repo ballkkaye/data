@@ -34,7 +34,7 @@ public class TodayTeamRecord {
     private Integer loseGame;
 
     @Column(nullable = false)
-    private Integer drawGame;
+    private Integer tieGame;
 
     @Column(nullable = false)
     private Double winRate;
@@ -68,7 +68,7 @@ public class TodayTeamRecord {
             Integer totalGame,
             Integer winGame,
             Integer loseGame,
-            Integer drawGame,
+            Integer tieGame,
             Double winRate,
             Double gap,
             String recentTenGame,
@@ -85,7 +85,7 @@ public class TodayTeamRecord {
         this.totalGame = totalGame;
         this.winGame = winGame;
         this.loseGame = loseGame;
-        this.drawGame = drawGame;
+        this.tieGame = tieGame;
         this.winRate = winRate;
         this.gap = gap;
         this.recentTenGame = recentTenGame;
