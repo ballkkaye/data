@@ -13,23 +13,23 @@ public class TeamRecordController {
 
     // 팀 기록 저장
     @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
-    public void saveBot() {
-        teamRecordService.saveBot();
-    }
-
-    // 관라지용 팀 기록 저장
-    @GetMapping("/s/admin/bot/teamrecord")
-    public void adminSaveBot() {
+    public void scheduledSaveBot() {
         teamRecordService.saveBot();
     }
 
     // 팀 기록 저장 + 오늘의 팀 기록 갱신
     @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
-    public void saveAndRefresh() {
+    public void scheduledSaveAndRefresh() {
         teamRecordService.saveAndRefresh();
     }
 
-    // 관라지용 팀 기록 저장 + 오늘의 팀 기록 갱신 저장  TODO
+    // 관리자용 팀 기록 저장
+    @GetMapping("/s/admin/bot/teamrecord")
+    public void adminSaveBot() {
+        teamRecordService.saveBot();
+    }
+
+    // 관리자용 팀 기록 저장 + 오늘의 팀 기록 갱신 저장  TODO
     @GetMapping("/s/admin/bot/teamrecord/sync")
     public void adminSaveAndRefresh() {
         teamRecordService.saveAndRefresh();

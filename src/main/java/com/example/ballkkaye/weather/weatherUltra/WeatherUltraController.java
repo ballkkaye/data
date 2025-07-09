@@ -17,13 +17,13 @@ public class WeatherUltraController {
      */
     // 초단기예보 insert
     @Scheduled(cron = "0 */10 13-18 ? * *")
-    public void getUltraWeather() {
+    public void scheduledGetUltraWeather() {
         weatherUltraService.getUltraForecastAndSave();
     }
 
+    // 관리자용 초단기 예보 insert
     @GetMapping("/admin/bot/getUltraForecastAndSave")
-    public String getUltraForecastAndSave() {
+    public void adminGetUltraForecastAndSave() {
         weatherUltraService.getUltraForecastAndSave();
-        return "크롤링 완료"; // TODO: 관리자 페이지 만들어지면 수정
     }
 }

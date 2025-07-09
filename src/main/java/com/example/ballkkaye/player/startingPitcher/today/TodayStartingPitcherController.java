@@ -11,14 +11,14 @@ public class TodayStartingPitcherController {
     private final TodayStartingPitcherService todayStartingPitcherService;
 
     @Scheduled(cron = "0 */10 0-5 * * *", zone = "Asia/Seoul")
-    public void copyTodayStartingPitchersScheduled() {
+    public void scheduledCopyTodayStartingPitchers() {
         todayStartingPitcherService.copyTodayStartingPitchers();
     }
 
-    @GetMapping("/admin/bot/copy-today-starting-pitchers")
-    public String copyTodayStartingPitchers() {
+    // 관리자용 오늘의 선발 투수
+    @GetMapping("/s/admin/bot/copy-today-starting-pitchers")
+    public void adminCopyTodayStartingPitchers() {
         todayStartingPitcherService.copyTodayStartingPitchers();
-        return "오늘 경기 선발투수 복사 완료";
     }
 
 }

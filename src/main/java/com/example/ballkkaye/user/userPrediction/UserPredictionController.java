@@ -1,8 +1,7 @@
 package com.example.ballkkaye.user.userPrediction;
 
-import com.example.ballkkaye._core.util.Resp;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,9 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserPredictionController {
     private final UserPredictionService userPredictionService;
 
-    @PostMapping("/admin/evaluate")
-    public ResponseEntity<?> evaluatePredictions() {
+    @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
+    public void scheduledEvaluatePredictions() {
         userPredictionService.evaluatePredictions();
-        return Resp.ok("ok");
+    }
+
+    // 관리자용 유저 예측 결과 판별
+    @PostMapping("/s/admin/evaluate")
+    public void adminEvaluatePredictions() {
+        userPredictionService.evaluatePredictions();
     }
 }
