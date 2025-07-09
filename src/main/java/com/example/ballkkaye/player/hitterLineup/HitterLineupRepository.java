@@ -5,7 +5,9 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -93,15 +95,18 @@ public class HitterLineupRepository {
      * - 라인업 복사 시, 기준 데이터를 추출하는 용도로 사용
      */
     public List<HitterLineup> findByGameDate(LocalDate today) {
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay(); // 다음 날 00시
+
         return em.createQuery("""
                         SELECT h FROM HitterLineup h
                         JOIN h.game g
-                        WHERE DATE(g.gameTime) = :today
+                        WHERE g.gameTime BETWEEN :start AND :end
                         """, HitterLineup.class)
-                .setParameter("today", today)
+                .setParameter("start", Timestamp.valueOf(startOfDay))
+                .setParameter("end", Timestamp.valueOf(endOfDay))
                 .getResultList();
     }
-
 
     /**
      * 특정 경기(Game)에 해당하는 라인업이 이미 존재하는지 확인

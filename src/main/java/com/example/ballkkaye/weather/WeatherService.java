@@ -1,5 +1,6 @@
 package com.example.ballkkaye.weather;
 
+import com.example.ballkkaye._core.error.ex.Exception404;
 import com.example.ballkkaye._core.util.Util;
 import com.example.ballkkaye.common.enums.WFCD;
 import com.example.ballkkaye.game.Game;
@@ -63,7 +64,7 @@ public class WeatherService {
 
             // 해당 경기장의 위도/경도를 격자 좌표로 변환
             StadiumCoordinate coord = stadiumCoordinateRepository.findByStadiumId(stadiumId)
-                    .orElseThrow(() -> new RuntimeException(("구장 위/경도 정보 없음")));
+                    .orElseThrow(() -> new Exception404(("구장 위/경도 정보 없음")));
             Util.GridXY grid = Util.convertToGrid(coord.getLatitude(), coord.getLongitude());
 
             String baseDate = gameTime.toLocalDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -146,9 +147,9 @@ public class WeatherService {
 
                 for (WeatherRequest.SaveDTO.WeatherDTO dto : forecastMap.values()) {
                     Game g = gameRepository.findById(gameId)
-                            .orElseThrow(() -> new RuntimeException(("경기 정보 없음")));
+                            .orElseThrow(() -> new Exception404(("경기 정보 없음")));
                     Stadium s = stadiumRepository.findById(stadiumId)
-                            .orElseThrow(() -> new RuntimeException(("구장 정보 없음")));
+                            .orElseThrow(() -> new Exception404(("구장 정보 없음")));
 
                     // 엔티티 매핑
                     Weather entity = Weather.builder()
@@ -165,7 +166,7 @@ public class WeatherService {
                             .build();
 
                     weatherList.add(entity);
-                    
+
                 }
 
                 // DB 저장
@@ -199,9 +200,9 @@ public class WeatherService {
 
             for (Weather w : weathers) {
                 Game wgame = gameRepository.findById(w.getGame().getId())
-                        .orElseThrow(() -> new RuntimeException(("경기 정보 없음: " + w.getGame().getId())));
+                        .orElseThrow(() -> new Exception404(("경기 정보 없음: " + w.getGame().getId())));
                 Stadium stadium = stadiumRepository.findById(w.getStadium().getId())
-                        .orElseThrow(() -> new RuntimeException(("구장 정보 없음: " + w.getStadium().getId())));
+                        .orElseThrow(() -> new Exception404(("구장 정보 없음: " + w.getStadium().getId())));
                 WeatherUltra ultra = WeatherUltra.builder()
                         .game(wgame)
                         .stadium(stadium)

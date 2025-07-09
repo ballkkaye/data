@@ -1,5 +1,6 @@
 package com.example.ballkkaye.player.startingPitcher;
 
+import com.example.ballkkaye._core.error.ex.Exception404;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.game.GameRepository;
@@ -13,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -31,6 +30,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.ballkkaye._core.util.Util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -106,7 +107,7 @@ public class StartingPitcherService {
                 Game game = gameRepository.findGameByDateAndTeams(gameDate, homeTeamDbId, awayTeamDbId)
                         .orElseThrow(() -> {
                             System.out.println("[WARN] Game 테이블에서 날짜=" + gameDate + ", 홈팀=" + homeTeamDbId + ", 어웨이팀=" + awayTeamDbId + " 로 경기 ID 찾을 수 없음");
-                            return new RuntimeException("해당 조건의 경기를 찾을 수 없습니다");
+                            return new Exception404("해당 조건의 경기를 찾을 수 없습니다");
                         });
 
 
@@ -117,7 +118,7 @@ public class StartingPitcherService {
                     Player player = playerRepository.findByKboPlayerId(kboPlayerId)
                             .orElseThrow(() -> {
                                 System.out.println("[WARN] Player 테이블에 KBO playerId " + kboPlayerId + " 없음");
-                                return new RuntimeException("선수를 찾을 수 없습니다");
+                                return new Exception404("선수를 찾을 수 없습니다");
                             });
                     System.out.println("[DEBUG] Player 테이블에서 찾은 playerId: " + player.getId() + " (KBO playerId: " + kboPlayerId + ")");
 
@@ -133,11 +134,11 @@ public class StartingPitcherService {
                             .game(game)
                             .player(player)
                             .profileUrl(imgUrl)
-                            .ERA(safeParseDouble(row.get(1).getAsJsonObject().get("Text").getAsString()))
+                            .ERA(parseNullableDouble(row.get(1).getAsJsonObject().get("Text").getAsString()))
                             .gameCount(safeParseInt(row.get(3).getAsJsonObject().get("Text").getAsString()))
                             .result(resultS)
                             .QS(safeParseInt(row.get(5).getAsJsonObject().get("Text").getAsString()))
-                            .WHIP(safeParseDouble(row.get(6).getAsJsonObject().get("Text").getAsString()))
+                            .WHIP(parseNullableDouble(row.get(6).getAsJsonObject().get("Text").getAsString()))
                             .build();
 
                     entities.add(entity);
@@ -162,7 +163,7 @@ public class StartingPitcherService {
     }
 
 
-    /*------------------ TODO: Util함수로 빼기 ------------------*/
+    // 내부 메서드
     // KBO 내부 API 호출 : 투수 시즌 스탯 JSON 얻기
     // Jsoup을 사용하여 HTTP POST 요청을 보내고, 그 응답을 JSON 형식으로 파싱(역직렬화) 하여 JsonObject로 반환
     private JsonObject callPitcherAnalysisApi(String awayTeamId, String awayPitId, String homeTeamId, String homePitId) {
@@ -189,41 +190,4 @@ public class StartingPitcherService {
         }
     }
 
-    // HTML <span class="record">...</span> 에서 시즌 전적 문자열 추출
-    // ex) "시즌 10승 3패 VS 상대 ..." → "10승 3패"
-    private String parseResultString(Document doc) {
-        Element recordEl = doc.selectFirst(".record");
-        if (recordEl == null) return "없음";
-        String txt = recordEl.text().replace("시즌 ", "").trim();
-        return txt.isEmpty() ? "없음" : txt.contains("VS") ? txt.split("VS")[0].trim() : txt;
-    }
-
-    // HTML 내 두 번째 <img> 태그(src) → 프로필 이미지 URL 반환
-    // '//' 로 시작하면 "https:" 접두어 추가
-    private String parseImgUrl(Document doc) {
-        Elements imgs = doc.select("img");
-        if (imgs.size() >= 2) {
-            String path = imgs.get(1).attr("src");
-            return path.startsWith("http") ? path : "https:" + path;
-        }
-        return "";
-    }
-
-    private Double safeParseDouble(String s) {
-        if (s == null || s.trim().equals("-")) return null;
-        try {
-            return Double.parseDouble(s.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private Integer safeParseInt(String s) {
-        if (s == null || s.trim().equals("-")) return null;
-        try {
-            return Integer.parseInt(s.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 }

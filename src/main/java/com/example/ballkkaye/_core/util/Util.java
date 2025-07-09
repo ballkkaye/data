@@ -1,6 +1,9 @@
 package com.example.ballkkaye._core.util;
 
 import com.example.ballkkaye.common.enums.WindDirection;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
@@ -18,9 +21,7 @@ public class Util {
      */
     public static void selectByContainingText(Select select, String keyword) {
         boolean found = false;
-        System.out.println("[DEBUG] keyword: " + keyword);
         for (WebElement option : select.getOptions()) {
-            System.out.println("[DEBUG] 옵션 텍스트: '" + option.getText() + "'");
             if (option.getText().contains(keyword)) {
                 select.selectByVisibleText(option.getText());
                 found = true;
@@ -194,6 +195,85 @@ public class Util {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
             return 0.0;
+        }
+    }
+
+
+    /**
+     * 전체 구장 이름을 KBO 메인페이지의 "game-cont" 엘리먼트의 `s_nm` 값에 맞춰 단축 형태로 변환함.
+     * 예: "잠실야구장" → "잠실"
+     * KBO 메인페이지의 경기 정보(li.game-cont)의 stadium 이름은 축약형으로 제공되기 때문에,
+     * DB 또는 API상의 전체 구장명을 매핑해주는 용도임.
+     */
+    public static String simplifyStadiumName(String fullName) {
+        return switch (fullName.trim()) {
+            case "잠실야구장" -> "잠실";
+            case "고척스카이돔" -> "고척";
+            case "수원 KT위즈파크" -> "수원";
+            case "인천 SSG 랜더스필드" -> "문학";
+            case "광주-기아 챔피언스필드" -> "광주";
+            case "대구 삼성라이온즈파크" -> "대구";
+            case "부산 사직야구장" -> "사직";
+            case "대전 한화생명이글스파크" -> "대전(신)";
+            case "창원 NC파크" -> "창원";
+            case "청주 야구장" -> "청주";
+            case "울산 문수야구장" -> "울산";
+            case "포항 야구장" -> "포항";
+            case "군산 월명야구장" -> "군산";
+            default -> fullName; // fallback
+        };
+    }
+
+
+    /**
+     * HTML 문서에서 시즌 전적 텍스트를 추출하는 유틸 메서드.
+     * 예: "시즌 10승 3패 VS 상대 ..." → "10승 3패"
+     */
+    public static String parseResultString(Document doc) {
+        Element recordEl = doc.selectFirst(".record");
+        if (recordEl == null) return "없음";
+        String txt = recordEl.text().replace("시즌 ", "").trim();
+        return txt.isEmpty() ? "없음" : txt.contains("VS") ? txt.split("VS")[0].trim() : txt;
+    }
+
+
+    /**
+     * HTML 문서 내 두 번째 <img> 태그에서 프로필 이미지 URL 추출.
+     * URL이 //로 시작하면 https: 접두사를 붙여 반환.
+     */
+    public static String parseImgUrl(Document doc) {
+        Elements imgs = doc.select("img");
+        if (imgs.size() >= 2) {
+            String path = imgs.get(1).attr("src");
+            return path.startsWith("http") ? path : "https:" + path;
+        }
+        return "";
+    }
+
+    /**
+     * 문자열을 안전하게 Double로 파싱하는 유틸 메서드.
+     * null, 빈 문자열, "-" 등은 null로 처리.
+     */
+    public static Double parseNullableDouble(String s) {
+        if (s == null || s.trim().equals("-")) return null;
+        try {
+            return Double.parseDouble(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    /**
+     * 문자열을 안전하게 Integer로 파싱하는 유틸 메서드.
+     * null, 빈 문자열, "-" 등은 null로 처리.
+     */
+    public static Integer safeParseInt(String s) {
+        if (s == null || s.trim().equals("-")) return null;
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }

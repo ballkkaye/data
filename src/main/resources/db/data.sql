@@ -104,18 +104,18 @@ VALUES ('1234', '쌀', 'ssar', 1, 'ssar@nate.com', '1999-09-09', 'MALE', '/img/p
        ('1234', '김정원', 'jungwon', 5, 'jungwon@example.com', '1996-06-06', 'MALE', '/img/profile.png', 'USER'),
        ('1234', '김미숙', 'misook', 6, 'misook@example.com', '1994-04-04', 'FEMALE', '/img/profile.png', 'USER');
 
--- 6.game_tb
+-- -- 6.game_tb
 INSERT INTO game_tb (id, game_time, stadium_id, broadcast_channel, game_status,
                      home_team_id, away_team_id,
                      home_win_per, away_win_per,
                      home_prediction_score, away_prediction_score,
                      home_result_score, away_result_score,
                      total_prediction_score)
-VALUES (423, TIMESTAMP '2025-07-08 18:30:00', 2, 'MS_T', 'COMPLETED', 1, 3, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (424, TIMESTAMP '2025-07-08 18:30:00', 1, 'KN_T', 'COMPLETED', 4, 10, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (425, TIMESTAMP '2025-07-08 18:30:00', 5, 'SS_T', 'COMPLETED', 7, 2, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (426, TIMESTAMP '2025-07-08 18:30:00', 8, 'SPO_T', 'COMPLETED', 9, 6, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (427, TIMESTAMP '2025-07-08 18:30:00', 4, 'SPO_2T', 'COMPLETED', 8, 5, 50.0, 50.0, NULL, NULL, 0, 0, NULL);
+VALUES (423, TIMESTAMP '2025-07-09 18:30:00', 1, 'MS_T', 'COMPLETED', 1, 3, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (424, TIMESTAMP '2025-07-09 18:30:00', 3, 'KN_T', 'COMPLETED', 4, 10, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (425, TIMESTAMP '2025-07-09 18:30:00', 6, 'SS_T', 'COMPLETED', 7, 2, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (426, TIMESTAMP '2025-07-09 18:30:00', 8, 'SPO_T', 'COMPLETED', 9, 6, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (427, TIMESTAMP '2025-07-09 18:30:00', 7, 'SPO_2T', 'COMPLETED', 8, 5, 50.0, 50.0, NULL, NULL, 0, 0, NULL);
 
 
 -- 7. today_game_tb
@@ -125,9 +125,70 @@ INSERT INTO today_game_tb (id, game_time, stadium_id, broadcast_channel, game_st
                            home_prediction_score, away_prediction_score,
                            home_result_score, away_result_score,
                            total_prediction_score)
-VALUES (423, TIMESTAMP '2025-07-08 18:30:00', 2, 'MS_T', 'COMPLETED', 1, 3, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (424, TIMESTAMP '2025-07-08 18:30:00', 1, 'KN_T', 'COMPLETED', 4, 10, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (425, TIMESTAMP '2025-07-08 18:30:00', 5, 'SS_T', 'COMPLETED', 7, 2, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (426, TIMESTAMP '2025-07-08 18:30:00', 8, 'SPO_T', 'COMPLETED', 9, 6, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
-       (427, TIMESTAMP '2025-07-08 18:30:00', 4, 'SPO_2T', 'COMPLETED', 8, 5, 50.0, 50.0, NULL, NULL, 0, 0, NULL);
+VALUES (423, TIMESTAMP '2025-07-09 18:30:00', 1, 'MS_T', 'COMPLETED', 1, 3, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (424, TIMESTAMP '2025-07-09 18:30:00', 3, 'KN_T', 'COMPLETED', 4, 10, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (425, TIMESTAMP '2025-07-09 18:30:00', 6, 'SS_T', 'COMPLETED', 7, 2, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (426, TIMESTAMP '2025-07-09 18:30:00', 8, 'SPO_T', 'COMPLETED', 9, 6, 50.0, 50.0, NULL, NULL, 0, 0, NULL),
+       (427, TIMESTAMP '2025-07-09 18:30:00', 7, 'SPO_2T', 'COMPLETED', 8, 5, 50.0, 50.0, NULL, NULL, 0, 0, NULL);
 
+
+-- 8. player_tb
+INSERT INTO player_tb (kbo_player_id, team_id, name)
+VALUES (61101, 1, '임찬규'),
+       (64350, 3, '하영민'),
+       (77829, 4, '김광현'),
+       (65516, 10, '배제성'),
+       (50596, 7, '홍민기'),
+       (55268, 2, '최민석'),
+       (53973, 9, '목지훈'),
+       (55460, 6, '가라비토'),
+       (52701, 8, '문동주'),
+       (53613, 5, '윤영철');
+
+-- 9. 선발투수
+INSERT INTO starting_pitcher_tb (game_id, player_id, profile_url,
+                                 era, game_count, result, qs, whip)
+VALUES (423, 2, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/51867.png', 4.58, 27, '2승 3패', 0,
+        1.53),
+       (423, 3, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55257.png', 4.86, 14, '5승 7패', 8,
+        1.38),
+       (424, 5, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/52701.png', 4.09, 11, '5승 2패', 4,
+        1.2),
+       (424, 4, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55460.png', NULL, NULL, '없음', NULL,
+        NULL),
+       (425, 6, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55532.png', 2.37, 5, '4승 1패', 4,
+        1.02),
+       (425, 7, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/66920.png', 5.34, 17, '2승 2패', 0,
+        1.71),
+       (426, 8, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/61101.png', 2.61, 14, '8승 2패', 9,
+        1.18),
+       (426, 9, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/50030.png', 3.13, 13, '5승 2패', 10,
+        1.18),
+       (427, 1, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/76225.png', 7.53, 11, '없음', 0,
+        1.88),
+       (427, 10, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/64350.png', 4.88, 15, '6승 7패', 8,
+        1.51);
+
+-- 10. 오늘의 선발투수
+INSERT INTO today_starting_pitcher_tb (game_id, player_id, profile_url,
+                                       era, game_count, qs, whip, result)
+VALUES (423, 2, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/51867.png', 4.58, 27, 0, 1.53,
+        '2승 3패'),
+       (423, 3, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55257.png', 4.86, 14, 8, 1.38,
+        '5승 7패'),
+       (424, 5, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/52701.png', 4.09, 11, 4, 1.2,
+        '5승 2패'),
+       (424, 4, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55460.png', NULL, NULL, NULL, NULL,
+        '없음'),
+       (425, 6, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/55532.png', 2.37, 5, 4, 1.02,
+        '4승 1패'),
+       (425, 7, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/66920.png', 5.34, 17, 0, 1.71,
+        '2승 2패'),
+       (426, 8, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/61101.png', 2.61, 14, 9, 1.18,
+        '8승 2패'),
+       (426, 9, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/50030.png', 3.13, 13, 10, 1.18,
+        '5승 2패'),
+       (427, 1, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/76225.png', 7.53, 11, 0, 1.88,
+        '없음'),
+       (427, 10, 'https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/kbo/2025/64350.png', 4.88, 15, 8, 1.51,
+        '6승 7패');

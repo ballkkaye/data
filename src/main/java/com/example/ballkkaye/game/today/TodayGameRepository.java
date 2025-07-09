@@ -59,4 +59,5 @@ public class TodayGameRepository {
                 .setParameter("awayTeamId", awayTeamId)
                 .getResultList();
     }
+
 }
