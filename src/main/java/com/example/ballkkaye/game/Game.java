@@ -23,9 +23,6 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true)
-    private String gameCode;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Stadium stadium;
 
@@ -71,8 +68,7 @@ public class Game {
     private Timestamp createdAt;
 
     @Builder
-    public Game(String gameCode, Stadium stadium, Team awayTeam, Team homeTeam, GameStatus gameStatus, Timestamp gameTime, Integer homeResultScore, Integer awayResultScore, BroadcastChannel broadcastChannel, Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore, Double homeWinPer, Double awayWinPer) {
-        this.gameCode = gameCode;
+    public Game(Stadium stadium, Team awayTeam, Team homeTeam, GameStatus gameStatus, Timestamp gameTime, Integer homeResultScore, Integer awayResultScore, BroadcastChannel broadcastChannel, Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore, Double homeWinPer, Double awayWinPer) {
         this.stadium = stadium;
         this.awayTeam = awayTeam;
         this.homeTeam = homeTeam;

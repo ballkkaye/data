@@ -12,7 +12,6 @@ public class GameRequest {
     @Data
     @ToString
     public static class SaveDTO {
-        private String gameCode;
         private Integer stadiumId;
         private Integer homeTeamId;
         private Integer awayTeamId;
@@ -33,12 +32,11 @@ public class GameRequest {
             this.awayWinPer = 50.0;
         }
 
-        public SaveDTO(String gameCode, Integer stadiumId, Integer homeTeamId, Integer awayTeamId, Timestamp gameTime,
+        public SaveDTO(Integer stadiumId, Integer homeTeamId, Integer awayTeamId, Timestamp gameTime,
                        GameStatus gameStatus, Integer homeResultScore, Integer awayResultScore,
                        BroadcastChannel broadcastChannel,
                        Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore,
                        Double homeWinPer, Double awayWinPer) {
-            this.gameCode = gameCode;
             this.stadiumId = stadiumId;
             this.homeTeamId = homeTeamId;
             this.awayTeamId = awayTeamId;
@@ -56,7 +54,6 @@ public class GameRequest {
 
         public static SaveDTO fromGameData(GameService.GameData gameData) {
             SaveDTO dto = new SaveDTO();
-            dto.setGameCode(gameData.getGameCode());
             dto.setStadiumId(gameData.getStadiumId());
             dto.setHomeTeamId(gameData.getHomeTeamId());
             dto.setAwayTeamId(gameData.getAwayTeamId());

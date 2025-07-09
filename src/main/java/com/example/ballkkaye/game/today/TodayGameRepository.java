@@ -1,10 +1,12 @@
 package com.example.ballkkaye.game.today;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
@@ -12,29 +14,32 @@ public class TodayGameRepository {
 
     private final EntityManager em;
 
-    public void saveOrUpdate(TodayGame todayGame) {
-        String gameCode = todayGame.getGameCode();
+    // 새로운 TodayGame 엔티티를 영속화 (저장)
+    public void save(TodayGame todayGame) {
+        em.persist(todayGame);
+    }
 
-        TodayGame existing = findByGameCode(gameCode);
+    // 기존 TodayGame 엔티티를 영속화 컨텍스트에 병합 (업데이트)
+    public TodayGame update(TodayGame todayGame) {
+        return em.merge(todayGame);
+    }
 
-        if (existing == null) {
-            em.persist(todayGame);
-        } else {
-            existing.update(
-                    todayGame.getGameStatus(),
-                    todayGame.getHomeResultScore(),
-                    todayGame.getAwayResultScore()
-            );
+    // gameId를 기준으로 TodayGame을 찾음
+    public Optional<TodayGame> findByGameId(Integer gameId) {
+        try {
+            TodayGame todayGame = em.createQuery(
+                            "SELECT t FROM TodayGame t WHERE t.game.id = :gameId", TodayGame.class)
+                    .setParameter("gameId", gameId)
+                    .getSingleResult();
+            return Optional.of(todayGame);
+        } catch (NoResultException e) {
+            return Optional.empty();
         }
     }
 
-
-    public TodayGame findByGameCode(String gameCode) {
-        List<TodayGame> result = em.createQuery(
-                        "SELECT t FROM TodayGame t WHERE t.gameCode = :gameCode", TodayGame.class)
-                .setParameter("gameCode", gameCode)
-                .getResultList();
-
-        return result.isEmpty() ? null : result.get(0);
+    // 모든 TodayGame을 조회
+    public List<TodayGame> findAll() {
+        return em.createQuery("SELECT t FROM TodayGame t", TodayGame.class).getResultList();
     }
+
 }

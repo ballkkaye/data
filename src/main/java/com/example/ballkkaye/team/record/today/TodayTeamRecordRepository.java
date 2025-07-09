@@ -22,22 +22,22 @@ public class TodayTeamRecordRepository {
         }
     }
 
-    public Double getLeagueAverageOps() {
+    public Double leagueAverageOps() {
         return em.createQuery("SELECT AVG(t.OPS) FROM TodayTeamRecord t", Double.class)
                 .getSingleResult();
     }
 
-    public Double getLeagueAverageR() {
+    public Double leagueAverageR() {
         return em.createQuery("SELECT AVG(t.R) FROM TodayTeamRecord t", Double.class)
                 .getSingleResult();
     }
 
-    public Double getLeagueAverageEra() {
+    public Double leagueAverageEra() {
         return em.createQuery("SELECT AVG(t.ERA) FROM TodayTeamRecord t", Double.class)
                 .getSingleResult();
     }
 
-    public Double getAverageGameCount() {
+    public Double averageGameCount() {
         return em.createQuery("SELECT AVG(t.totalGame) FROM TodayTeamRecord t", Double.class)
                 .getSingleResult();
     }

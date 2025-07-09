@@ -1,5 +1,6 @@
 package com.example.ballkkaye.game;
 
+import com.example.ballkkaye._core.util.Resp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,8 +27,15 @@ public class GameController {
 
     // 관리자용
     @GetMapping("/admin/bot/gameCrawlAndSave")
-    public ResponseEntity<String> adminSave() {
+    public ResponseEntity<?> adminSave() {
         gameService.save();
+        return Resp.ok("ok");
+    }
+
+    // 오늘의 경기 갱신용 (game_tb가 업데이트 되어야 함)
+    @GetMapping("/admin/bot/gameCrawlAndUpdate")
+    public ResponseEntity<?> adminUpdate() {
+        gameService.update();
         return ResponseEntity.ok("ok");
     }
 }
