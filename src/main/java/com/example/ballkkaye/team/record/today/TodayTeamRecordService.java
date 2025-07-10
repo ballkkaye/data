@@ -29,11 +29,10 @@ public class TodayTeamRecordService {
             TodayTeamRecordRequest.saveDto dto = new TodayTeamRecordRequest.saveDto(tr);
             TodayTeamRecord todayTeamRecord = dto.toEntity(tr.getTeam());
             todayTeamRecords.add(todayTeamRecord);
-
-            // 이벤트 발행 추가
-            publisherService.publishTeamRecordUpdated(tr.getTeam().getId(), tr.getTeam().getTeamName());
         }
 
         todayTeamRecordRepository.save(todayTeamRecords);
+        // 이벤트 발행 추가
+        publisherService.publishTeamRecordUpdated();
     }
 }

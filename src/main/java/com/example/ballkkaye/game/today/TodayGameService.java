@@ -14,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -49,6 +46,8 @@ public class TodayGameService {
                 recordMap.put(record.getTeam().getId(), record);
             }
         }
+
+        List<Integer> insertedGameIds = new ArrayList<>();  // 저장된 게임 ID 추적용 리스트 추가
 
         for (Game game : todayGames) {
             Team home = game.getHomeTeam();
@@ -118,9 +117,12 @@ public class TodayGameService {
                         .build();
 
                 todayGameRepository.save(newTodayGame);
-                // 여기서 라인업 업데이트 이벤트 발행
-                publisherService.publishGameUpdated(game.getId());
+                insertedGameIds.add(game.getId());
             }
+        }
+        // 루프 종료 후 저장된 게임이 하나라도 있으면 이벤트 발행
+        if (!insertedGameIds.isEmpty()) {
+            publisherService.publishGameUpdatedEvent();
         }
     }
 }

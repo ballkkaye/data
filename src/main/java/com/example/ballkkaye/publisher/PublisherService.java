@@ -14,22 +14,23 @@ public class PublisherService {
     private final StringRedisTemplate redisTemplate;
 
     // 오늘의 경기 이벤트 발행
-    public void publishGameUpdated(Integer gameId) {
-        redisTemplate.convertAndSend("today-game-updated", gameId.toString());
+    public void publishGameUpdatedEvent() {
+        redisTemplate.convertAndSend("today-game-updated", "TODAY_GAME_UPDATED");
     }
 
-    public void publishHitterLineupUpdated(Integer gameId) {
-        redisTemplate.convertAndSend("hitter-lineup-updated", gameId.toString());
+    // 상대 전적 이벤트 발행
+    public void publishHitterLineupUpdatedEvent() {
+        redisTemplate.convertAndSend("hitter-lineup-updated", "TODAY_HITTER_LINEUP_UPDATED");
     }
 
-    public void publishWeatherAlert(Integer stadiumId, String message) {
-        String payload = String.format("%d:%s", stadiumId, message);
-        redisTemplate.convertAndSend("weather-alert", payload);
+    // 선발투수 라인업 이벤트 발행 - 승리예측
+    public void publishStartingPitcherUpdatedEvent() {
+        redisTemplate.convertAndSend("starting-pitcher-lineup-updated", "TODAY_STARTING_PITCHER_UPDATED");
     }
 
-    public void publishTeamRecordUpdated(Integer teamId, String teamName) {
-        String payload = String.format("%d:%s", teamId, teamName);
-        redisTemplate.convertAndSend("team-record-updated", payload);
+    // 팀기록 이벤트 발행
+    public void publishTeamRecordUpdated() {
+        redisTemplate.convertAndSend("team-record-update", "TEAM-RECORD-UPDATED");
     }
 
     // 필요하면 JSON 포맷도 가능
