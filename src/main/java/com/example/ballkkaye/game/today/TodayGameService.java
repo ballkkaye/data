@@ -3,6 +3,7 @@ package com.example.ballkkaye.game.today;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.game.GameRepository;
 import com.example.ballkkaye.player.startingPitcher.today.TodayStartingPitcherRepository;
+import com.example.ballkkaye.publisher.PublisherService;
 import com.example.ballkkaye.stadium.stadiumCorrection.StadiumCorrectionRepository;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.record.today.TodayTeamRecord;
@@ -13,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -27,6 +25,7 @@ public class TodayGameService {
     private final TodayTeamRecordRepository todayTeamRecordRepository;
     private final StadiumCorrectionRepository stadiumCorrectionRepository;
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
+    private final PublisherService publisherService;
 
     @Transactional
     public void syncTodayGames() {
@@ -47,6 +46,8 @@ public class TodayGameService {
                 recordMap.put(record.getTeam().getId(), record);
             }
         }
+
+        List<Integer> insertedGameIds = new ArrayList<>();  // 저장된 게임 ID 추적용 리스트 추가
 
         for (Game game : todayGames) {
             Team home = game.getHomeTeam();
@@ -116,7 +117,12 @@ public class TodayGameService {
                         .build();
 
                 todayGameRepository.save(newTodayGame);
+                insertedGameIds.add(game.getId());
             }
+        }
+        // 루프 종료 후 저장된 게임이 하나라도 있으면 이벤트 발행
+        if (!insertedGameIds.isEmpty()) {
+            publisherService.publishGameUpdatedEvent();
         }
     }
 }

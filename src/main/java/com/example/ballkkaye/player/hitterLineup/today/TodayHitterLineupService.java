@@ -2,6 +2,7 @@ package com.example.ballkkaye.player.hitterLineup.today;
 
 import com.example.ballkkaye.player.hitterLineup.HitterLineup;
 import com.example.ballkkaye.player.hitterLineup.HitterLineupRepository;
+import com.example.ballkkaye.publisher.PublisherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.List;
 public class TodayHitterLineupService {
     private final TodayHitterLineupRepository todayHitterLineUpRepository;
     private final HitterLineupRepository hitterLineupRepository;
+    private final PublisherService publisherService;
 
 
     @Transactional
@@ -58,5 +60,7 @@ public class TodayHitterLineupService {
 
         todayHitterLineUpRepository.saveAll(toSave);
         System.out.printf("TodayHitterLineup으로 %d개 복사 완료\n", toSave.size());
+        // ✅ 저장이 발생했을 경우에만 1회 이벤트 발행
+        publisherService.publishHitterLineupUpdatedEvent();
     }
 }
