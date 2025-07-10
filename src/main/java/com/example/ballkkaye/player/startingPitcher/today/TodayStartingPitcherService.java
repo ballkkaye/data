@@ -2,6 +2,7 @@ package com.example.ballkkaye.player.startingPitcher.today;
 
 import com.example.ballkkaye.player.startingPitcher.StartingPitcher;
 import com.example.ballkkaye.player.startingPitcher.StartingPitcherRepository;
+import com.example.ballkkaye.publisher.PublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 public class TodayStartingPitcherService {
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
     private final StartingPitcherRepository startingPitcherRepository;
+    private final PublisherService publisherService;
 
     // 오늘 경기의 선발투수를 TodayStartingPitcher로 복사 후 저장
     @Transactional
@@ -63,6 +65,7 @@ public class TodayStartingPitcherService {
 
         todayStartingPitcherRepository.saveAll(copied);
         System.out.println("오늘 선발투수 " + copied.size() + "명 복사 완료");  // TODO: 로그 관리
+        publisherService.publishStartingPitcherUpdatedEvent();
     }
 }
 
