@@ -55,7 +55,7 @@ public class StartingPitcherService {
             String targetDate = LocalDate.now()
 //                    .plusDays(1)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            log.debug("크롤링 대상 날짜: {}", targetDate); // 디버깅: 크롤링 대상 날짜 출력
+            log.debug("크롤링 대상 날짜: {}", targetDate);
 
             // [2] WebDriver 옵션 설정 및 페이지 접속
             ChromeOptions opts = new ChromeOptions();
@@ -111,7 +111,7 @@ public class StartingPitcherService {
                 Game game = gameRepository.findGameByDateAndTeams(gameDate, homeTeamDbId, awayTeamDbId)
                         .orElseThrow(() -> {
                             log.warn("Game 테이블에서 날짜={}, 홈팀={}, 어웨이팀={}에 대한 경기 없음", gameDate, homeTeamDbId, awayTeamDbId);
-                            return new Exception404("해당 조건의 경기를 찾을 수 없습니다");
+                            return new Exception404("해당 자원을 찾을 수 없습니다.");
                         });
 
 
@@ -123,7 +123,7 @@ public class StartingPitcherService {
                     Player player = playerRepository.findByKboPlayerId(kboPlayerId)
                             .orElseThrow(() -> {
                                 log.warn("Player 테이블에 KBO playerId {} 없음", kboPlayerId);
-                                return new Exception404("선수를 찾을 수 없습니다");
+                                return new Exception404("해당 자원을 찾을 수 없습니다.");
                             });
                     log.debug("Player 조회 성공: playerId={}, KBO playerId={}", player.getId(), kboPlayerId);
 

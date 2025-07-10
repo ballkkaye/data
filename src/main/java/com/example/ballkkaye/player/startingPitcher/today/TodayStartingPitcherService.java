@@ -64,7 +64,9 @@ public class TodayStartingPitcherService {
                 .toList();
 
         todayStartingPitcherRepository.saveAll(copied);
-        System.out.println("오늘 선발투수 " + copied.size() + "명 복사 완료");  // TODO: 로그 관리
+        log.info("오늘({}) 선발투수 {}명 복사 완료", today, copied.size());
+
+        // [5] 오늘 선발투수 복사 완료 후 이벤트 발행 (구독자 알림)
         publisherService.publishStartingPitcherUpdatedEvent();
     }
 }
