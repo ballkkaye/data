@@ -11,15 +11,14 @@ public class TodayHitterLineupController {
 
 
     //@Scheduled(cron = "0 */5 13-18 * * *") // 매일 13:00~18:59까지 5분 간격
-    public void copyTodayLineupFromHitterLineupWeekend() {
+    public void scheduledCopyTodayLineupFromHitterLineupWeekend() {
         todayHitterLineUpService.copyTodayLineupFromHitterLineup();
     }
 
 
-    @GetMapping("/admin/bot/today-hitter-lineup")
-    public String copyTodayLineupFromHitterLineup() {
+    @GetMapping("/s/admin/bot/today-hitter-lineup")
+    public void adminCopyTodayLineupFromHitterLineup() {
         todayHitterLineUpService.copyTodayLineupFromHitterLineup();
-        return "오늘 경기 타자 라인업 복사 완료";
     }
 
 }
