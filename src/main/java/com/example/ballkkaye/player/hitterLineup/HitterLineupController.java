@@ -11,14 +11,13 @@ public class HitterLineupController {
 
 
     //@Scheduled(cron = "0 */10 12-19 * * *")  // 매일 12시~19시 사이 10분마다 실행
-    public void crawlHitterLineupsAndSaveWeekend() {
+    public void scheduledCrawlHitterLineupsAndSaveWeekend() {
         hitterLineUpService.crawlHitterLineUpsByGameTime();
     }
 
 
-    @GetMapping("/admin/bot/hitter-lineup")
-    public String crawlHitterLineUpsByGameTime() {
+    @GetMapping("/s/admin/bot/hitter-lineup")
+    public void adminCrawlHitterLineUpsByGameTime() {
         hitterLineUpService.crawlHitterLineUpsByGameTime();
-        return "크롤링 완료";
     }
 }
