@@ -65,8 +65,8 @@ public class TodayGameService {
             if (homeOps == null || awayOps == null) continue;
 
 
-            Double homePitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, home);
-            Double awayPitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, away);
+            Double homePitcherEra = todayStartingPitcherRepository.findPitcherEraByGameAndTeam(game, home);
+            Double awayPitcherEra = todayStartingPitcherRepository.findPitcherEraByGameAndTeam(game, away);
 
             if (homePitcherEra == null || homePitcherEra == 0.0) homePitcherEra = avgEra;
             if (awayPitcherEra == null || awayPitcherEra == 0.0) awayPitcherEra = avgEra;

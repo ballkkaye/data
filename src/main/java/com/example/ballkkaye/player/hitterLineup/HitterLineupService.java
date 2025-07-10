@@ -159,10 +159,10 @@ public class HitterLineupService {
             // [5] 팀 ID 및 선발투수 정보 로드
             Integer homeTeamId = game.getHomeTeam().getId();
             Integer awayTeamId = game.getAwayTeam().getId();
-            List<String> homePitchers = todayStartingPitcherRepository.findByGameIdAndTeam(game.getId(), homeTeam);
+            List<String> homePitchers = todayStartingPitcherRepository.findByGameIdAndTeamName(game.getId(), homeTeam);
             if (homePitchers.isEmpty()) throw new Exception404("홈팀 선발투수 정보 없음");
             String homePitcher = homePitchers.get(0);
-            List<String> awayPitchers = todayStartingPitcherRepository.findByGameIdAndTeam(game.getId(), awayTeam);
+            List<String> awayPitchers = todayStartingPitcherRepository.findByGameIdAndTeamName(game.getId(), awayTeam);
             if (awayPitchers.isEmpty()) throw new Exception404("원정팀 선발투수 정보 없음");
             String awayPitcher = awayPitchers.get(0);
 
