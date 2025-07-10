@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -33,6 +34,7 @@ import java.util.List;
 
 import static com.example.ballkkaye._core.util.Util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class StartingPitcherService {
@@ -40,9 +42,8 @@ public class StartingPitcherService {
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
 
-    /**
-     * 선발투수 크롤링 + DB 저장 (로그 → 콘솔 출력)
-     */
+
+    // 선발투수 크롤링 + DB 저장
     @Transactional
     public void startingPitchers() {
         WebDriverManager.chromedriver().setup();
@@ -50,12 +51,13 @@ public class StartingPitcherService {
         WebDriver driver = null;
 
         try {
-            /* 1) GameCenter 접속 (내일 날짜) */
+            // [1] 대상 날짜 지정
             String targetDate = LocalDate.now()
 //                    .plusDays(1)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            System.out.println("[DEBUG] 크롤링 대상 날짜 (targetDate): " + targetDate); // 디버깅: 크롤링 대상 날짜 출력
+            log.debug("크롤링 대상 날짜: {}", targetDate);
 
+            // [2] WebDriver 옵션 설정 및 페이지 접속
             ChromeOptions opts = new ChromeOptions();
             opts.addArguments("--headless=new");
             opts.addArguments("--disable-gpu"); // GPU 비활성화
@@ -67,11 +69,11 @@ public class StartingPitcherService {
             driver.get("https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=" + targetDate);
 
 
-            /* 경기 리스트(li.game-cont) 로딩 대기 (최대 10초) */
+            // [3] 경기 리스트 로딩 대기
             new WebDriverWait(driver, Duration.ofSeconds(10))
                     .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li.game-cont")));
 
-            /* 2) 경기 목록 순회 */
+            // [4] 경기별 데이터 수집
             for (WebElement gameEl : driver.findElements(By.cssSelector("li.game-cont"))) {
 
                 /* ─ 경기·팀·투수 식별자 추출 ─ */
@@ -82,45 +84,48 @@ public class StartingPitcherService {
                 String awayPitId = gameEl.getAttribute("away_p_id");
                 String homePitId = gameEl.getAttribute("home_p_id");
 
-                // 선발투수 미확정 시 skip
+                // 선발 투수 정보 없을 경우 건너뜀
                 if (awayPitId == null || homePitId == null ||
                         awayPitId.isBlank() || homePitId.isBlank()) {
-                    System.out.println("[DEBUG] 선발 투수 미확정 또는 정보 누락으로 게임 " + gameIdRaw + " 스킵"); // 디버깅: 스킵 이유 출력
+                    log.debug("선발 투수 정보 누락으로 경기 {} 스킵", gameIdRaw);
                     continue;
                 }
 
-                /* 3) 내부 API 호출 → 선발투수 시즌 스탯(JSON) */
+                // [5] 선발투수 분석 API 호출
                 JsonObject api = callPitcherAnalysisApi(awayTeamId, awayPitId, homeTeamId, homePitId);
                 if (api == null) {
-                    System.out.println("[DEBUG] 투수 분석 API 호출 실패 또는 결과 없음으로 게임 " + gameIdRaw + " 스킵"); // 디버깅: 스킵 이유 출력
+                    log.debug("투수 분석 API 결과 없음으로 경기 {} 스킵", gameIdRaw);
                     continue;
                 }
 
+                // [6] 내부 팀 ID 매핑
                 Integer homeTeamDbId = UtilMapper.getTeamIdByCode(homeTeamId);
                 Integer awayTeamDbId = UtilMapper.getTeamIdByCode(awayTeamId);
 
                 if (homeTeamDbId == null || awayTeamDbId == null) {
-                    System.out.println("[ERROR] 알 수 없는 팀 코드: " + homeTeamDbId + " 또는 " + awayTeamDbId);
+                    log.error("알 수 없는 팀 코드: home={}, away={}", homeTeamId, awayTeamId);
                     continue;
                 }
 
+                // [7] Game 조회
                 Game game = gameRepository.findGameByDateAndTeams(gameDate, homeTeamDbId, awayTeamDbId)
                         .orElseThrow(() -> {
-                            System.out.println("[WARN] Game 테이블에서 날짜=" + gameDate + ", 홈팀=" + homeTeamDbId + ", 어웨이팀=" + awayTeamDbId + " 로 경기 ID 찾을 수 없음");
-                            return new Exception404("해당 조건의 경기를 찾을 수 없습니다");
+                            log.warn("Game 테이블에서 날짜={}, 홈팀={}, 어웨이팀={}에 대한 경기 없음", gameDate, homeTeamDbId, awayTeamDbId);
+                            return new Exception404("해당 자원을 찾을 수 없습니다.");
                         });
 
 
+                // [8] 팀별 선발투수 처리
                 for (String teamType : List.of("away", "home")) {
                     int idx = teamType.equals("away") ? 0 : 1;
                     Integer kboPlayerId = Integer.parseInt(teamType.equals("away") ? awayPitId : homePitId);
 
                     Player player = playerRepository.findByKboPlayerId(kboPlayerId)
                             .orElseThrow(() -> {
-                                System.out.println("[WARN] Player 테이블에 KBO playerId " + kboPlayerId + " 없음");
-                                return new Exception404("선수를 찾을 수 없습니다");
+                                log.warn("Player 테이블에 KBO playerId {} 없음", kboPlayerId);
+                                return new Exception404("해당 자원을 찾을 수 없습니다.");
                             });
-                    System.out.println("[DEBUG] Player 테이블에서 찾은 playerId: " + player.getId() + " (KBO playerId: " + kboPlayerId + ")");
+                    log.debug("Player 조회 성공: playerId={}, KBO playerId={}", player.getId(), kboPlayerId);
 
                     JsonArray row = api.getAsJsonArray("rows")
                             .get(idx).getAsJsonObject()
@@ -142,29 +147,27 @@ public class StartingPitcherService {
                             .build();
 
                     entities.add(entity);
-                    System.out.println("[DEBUG] StartingPitcher 엔티티 추가됨: gameId=" + game.getId() + ", playerId=" + player.getId() + " (Team: " + teamType + ")");
+                    log.debug("StartingPitcher 추가됨: gameId={}, playerId={}, team={}", game.getId(), player.getId(), teamType);
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("[ERROR] 선발투수 크롤링 실패");
-            e.printStackTrace();
+            log.error("선발투수 크롤링 중 예외 발생", e);
         } finally {
             if (driver != null) driver.quit();
         }
 
+        // [9] 저장 처리
         if (!entities.isEmpty()) {
             startingPitcherRepository.saveAll(entities);
-            System.out.println("[INFO] " + entities.size() + " 개의 선발투수 데이터 저장 완료");
+            log.info("{}개의 선발투수 데이터 저장 완료", entities.size());
         } else {
-            System.out.println("저장할 데이터가 없습니다");
-            System.out.println("[INFO] entities 리스트가 비어있음. 크롤링된 데이터가 없거나 모든 항목이 스킵됨.");
+            log.info("저장할 선발투수 데이터 없음 (entities 비어있음)");
         }
     }
 
 
     // 내부 메서드
-    // KBO 내부 API 호출 : 투수 시즌 스탯 JSON 얻기
     // Jsoup을 사용하여 HTTP POST 요청을 보내고, 그 응답을 JSON 형식으로 파싱(역직렬화) 하여 JsonObject로 반환
     private JsonObject callPitcherAnalysisApi(String awayTeamId, String awayPitId, String homeTeamId, String homePitId) {
         try {
@@ -184,8 +187,8 @@ public class StartingPitcherService {
 
             return JsonParser.parseString(response.body()).getAsJsonObject();
         } catch (IOException e) {
-            System.out.println("[ERROR] API 호출 실패: " + e.getMessage()); // 디버깅: 실패 원인 메시지 출력
-            // e.printStackTrace(); // 필요한 경우 주석 해제하여 스택 트레이스 확인
+            log.error("투수 분석 API 호출 실패 - awayTeamId={}, awayPitId={}, homeTeamId={}, homePitId={}",
+                    awayTeamId, awayPitId, homeTeamId, homePitId, e);
             return null;
         }
     }

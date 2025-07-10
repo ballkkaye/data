@@ -20,6 +20,7 @@ public class StartingPitcherRepository {
     }
 
 
+    // 게임 시간 기준으로 오늘 날짜에 해당하는 선발투수 전체 조회
     public List<StartingPitcher> findByGameDate(Timestamp startOfDay, Timestamp endOfDay) {
         return em.createQuery("""
                             SELECT s
