@@ -1,5 +1,6 @@
 package com.example.ballkkaye.game;
 
+import com.example.ballkkaye.common.enums.GameStatus;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -55,24 +56,8 @@ public class GameRepository {
         }
     }
 
-    public boolean existsByGameTimeAndTeams(Timestamp gameTime, Integer homeTeamId, Integer awayTeamId) {
-        Long count = em.createQuery("""
-                            SELECT COUNT(g)
-                            FROM Game g
-                            WHERE g.gameTime = :gameTime
-                            AND g.homeTeam.id = :homeTeamId
-                            AND g.awayTeam.id = :awayTeamId
-                        """, Long.class)
-                .setParameter("gameTime", gameTime)
-                .setParameter("homeTeamId", homeTeamId)
-                .setParameter("awayTeamId", awayTeamId)
-                .getSingleResult();
 
-        return count > 0;
-    }
-
-
-    public List<Game> todayGame(LocalDate date) {
+    public List<Game> findTodayGame(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
 
@@ -82,6 +67,36 @@ public class GameRepository {
                 .getResultList();
     }
 
+    public List<Game> findByGameStatusIn(List<GameStatus> gameStatusList) {
+        String jpql = "SELECT g FROM Game g WHERE g.gameStatus IN :statuses";
+        return em.createQuery(jpql, Game.class)
+                .setParameter("statuses", gameStatusList)
+                .getResultList();
+    }
+
+    public Optional<Game> findByStadiumIdAndHomeTeamIdAndAwayTeamIdAndGameTime(
+            Integer stadiumId,
+            Integer homeTeamId,
+            Integer awayTeamId,
+            Timestamp gameTime
+    ) {
+        String jpql = """
+                    SELECT g FROM Game g
+                    WHERE g.stadium.id = :stadiumId
+                      AND g.homeTeam.id = :homeTeamId
+                      AND g.awayTeam.id = :awayTeamId
+                      AND g.gameTime = :gameTime
+                """;
+
+        List<Game> result = em.createQuery(jpql, Game.class)
+                .setParameter("stadiumId", stadiumId)
+                .setParameter("homeTeamId", homeTeamId)
+                .setParameter("awayTeamId", awayTeamId)
+                .setParameter("gameTime", gameTime)
+                .getResultList();
+
+        return result.stream().findFirst();
+    }
 
     public Optional<Game> findById(Integer id) {
         try {

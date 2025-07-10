@@ -49,7 +49,7 @@ public class TodayTeamRecordRequest {
                     .totalGame(totalGame)
                     .winGame(winGame)
                     .loseGame(loseGame)
-                    .drawGame(tieGame)
+                    .tieGame(tieGame)
                     .winRate(winRate)
                     .gap(gap)
                     .recentTenGame(recentTenGame)

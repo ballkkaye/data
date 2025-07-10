@@ -13,11 +13,8 @@ public class TeamRepository {
     private final EntityManager em;
 
     public Optional<Team> findById(Integer teamId) {
-        try {
-            Team team = em.find(Team.class, teamId);
-            return Optional.ofNullable(team);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        Team team = em.find(Team.class, teamId);
+        return Optional.ofNullable(team);
     }
+
 }

@@ -25,7 +25,7 @@ public class TodayHitterLineupService {
         List<HitterLineup> todayLineups = hitterLineupRepository.findByGameDate(today);
 
         if (todayLineups.isEmpty()) {
-            System.out.println("❌ 오늘 날짜의 라인업이 없습니다.");
+            System.out.println("오늘 날짜의 라인업이 없습니다.");
             return;
         }
 
@@ -52,11 +52,11 @@ public class TodayHitterLineupService {
         }
 
         if (toSave.isEmpty()) {
-            System.out.println("⏩ 이미 모든 라인업이 저장되어 있습니다.");
+            System.out.println("이미 모든 라인업이 저장되어 있습니다.");
             return;
         }
 
         todayHitterLineUpRepository.saveAll(toSave);
-        System.out.printf("✅ TodayHitterLineup으로 %d개 복사 완료\n", toSave.size());
+        System.out.printf("TodayHitterLineup으로 %d개 복사 완료\n", toSave.size());
     }
 }

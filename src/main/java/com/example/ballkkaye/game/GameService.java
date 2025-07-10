@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,22 +81,19 @@ public class GameService {
                             gameData.getAwayTeamId() == null || gameData.getGameTime() == null ||
                             gameData.getBroadcastChannel() == null) continue;
 
-                    // 캐싱된 기존 경기 스킵
-                    boolean exists = gameRepository.existsByGameTimeAndTeams(
-                            gameData.getGameTime(), gameData.getHomeTeamId(), gameData.getAwayTeamId()
-                    );
-                    if (exists) continue;
-
                     GameRequest.SaveDTO saveDTO = GameRequest.SaveDTO.fromGameData(gameData);
-                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
-                            .orElseThrow(() -> new RuntimeException("구장을 찾을 수 없습니다: id=" + saveDTO.getStadiumId()));
 
+                    if (saveDTO.getAwayTeamId() == null || saveDTO.getHomeTeamId() == null) {
+                        continue;
+                    }
+
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
-                            .orElseThrow(() -> new RuntimeException("Home 팀을 찾을 수 없습니다: id=" + saveDTO.getHomeTeamId()));
+                            .orElseThrow(() -> new RuntimeException("homeTeam 찾을 수 없음: id=" + saveDTO.getHomeTeamId()));
 
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
-                            .orElseThrow(() -> new RuntimeException("Away 팀을 찾을 수 없습니다: id=" + saveDTO.getAwayTeamId()));
-
+                            .orElseThrow(() -> new RuntimeException("awayTeam 찾을 수 없음: id=" + saveDTO.getAwayTeamId()));
 
                     Game game = Game.builder()
                             .stadium(stadium)
@@ -117,7 +115,7 @@ public class GameService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("크롤링 중 오류 발생", e);
         } finally {
             if (driver != null) {
                 try {
@@ -185,28 +183,37 @@ public class GameService {
             if (compact.matcher(rawGame).find()) {
                 Matcher m = compact.matcher(rawGame);
                 m.find();
-                awayTeamId = UtilMapper.getTeamId(m.group(1));
+                String awayTeamName = m.group(1);
+                String homeTeamName = m.group(4);
+
+                awayTeamId = UtilMapper.getTeamId(awayTeamName);
+                homeTeamId = UtilMapper.getTeamId(homeTeamName);
                 awayScore = Integer.parseInt(m.group(2));
                 homeScore = Integer.parseInt(m.group(3));
-                homeTeamId = UtilMapper.getTeamId(m.group(4));
-                matched = true;
             } else if (spaced.matcher(rawGame).find()) {
                 Matcher m = spaced.matcher(rawGame);
                 m.find();
-                awayTeamId = UtilMapper.getTeamId(m.group(1));
-                homeTeamId = UtilMapper.getTeamId(m.group(2));
+                String awayTeamName = m.group(1);
+                String homeTeamName = m.group(2);
+
+                awayTeamId = UtilMapper.getTeamId(awayTeamName);
+                homeTeamId = UtilMapper.getTeamId(homeTeamName);
                 awayScore = Integer.parseInt(m.group(3));
                 homeScore = Integer.parseInt(m.group(4));
-                matched = true;
             } else if (plain.matcher(rawGame).find()) {
                 Matcher m = plain.matcher(rawGame);
                 m.find();
-                awayTeamId = UtilMapper.getTeamId(m.group(1));
-                homeTeamId = UtilMapper.getTeamId(m.group(2));
-                matched = true;
+                String awayTeamName = m.group(1);
+                String homeTeamName = m.group(2);
+
+                awayTeamId = UtilMapper.getTeamId(awayTeamName);
+                homeTeamId = UtilMapper.getTeamId(homeTeamName);
             }
 
-            // GameStatus 판단
+            if (awayTeamId == null || homeTeamId == null) {
+                throw new RuntimeException("팀 이름 매핑 실패: away or home team ID is null");
+            }
+
             GameStatus gameStatus;
             boolean hasLiveText = rawTv.contains("중계");
 
@@ -234,7 +241,7 @@ public class GameService {
             return imgs.get(0).getAttribute("alt").trim();
         } else {
             String text = tvCell.getText().trim();
-            return text.split("[\\n\\s,]+")[0]; // 여러 개일 경우 첫 채널만
+            return text.split("[\\n\\s,]+")[0];
         }
     }
 
@@ -262,6 +269,111 @@ public class GameService {
             this.stadiumId = stadiumId;
             this.homeTeamId = homeTeamId;
             this.awayTeamId = awayTeamId;
+        }
+    }
+
+    @Transactional
+    public void update() {
+        WebDriver driver = null;
+        try {
+            WebDriverManager.chromedriver().setup();
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--disable-popup-blocking");
+            options.addArguments("--headless=new");
+
+            driver = new ChromeDriver(options);
+            driver.get("https://www.koreabaseball.com/Schedule/Schedule.aspx#");
+
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.id("ddlYear")));
+            WebElement ddlMonthElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("ddlMonth")));
+
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#ddlMonth option")));
+
+            Select ddlMonthSelect = new Select(ddlMonthElement);
+
+            LocalDate today = LocalDate.now();
+            String currentMonthValue = String.format("%02d", today.getMonthValue());
+            ddlMonthSelect.selectByValue(currentMonthValue);
+
+            try {
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#tblScheduleList tbody td")));
+            } catch (TimeoutException e) {
+                return;
+            }
+
+            List<GameData> parsedGameDataList = extractGameData(driver, wait);
+
+            for (GameData gameData : parsedGameDataList) {
+                if (gameData.getGameTime() == null || !gameData.getGameTime().toLocalDateTime().toLocalDate().isEqual(today)) {
+                    continue;
+                }
+
+                if (gameData.getStadiumId() == null || gameData.getHomeTeamId() == null ||
+                        gameData.getAwayTeamId() == null || gameData.getGameTime() == null ||
+                        gameData.getBroadcastChannel() == null) {
+                    continue;
+                }
+
+                GameRequest.SaveDTO saveDTO = GameRequest.SaveDTO.fromGameData(gameData);
+
+                Optional<Game> optionalGame = gameRepository.findByStadiumIdAndHomeTeamIdAndAwayTeamIdAndGameTime(
+                        saveDTO.getStadiumId(),
+                        saveDTO.getHomeTeamId(),
+                        saveDTO.getAwayTeamId(),
+                        saveDTO.getGameTime()
+                );
+
+                if (optionalGame.isPresent()) {
+                    Game existingGame = optionalGame.get();
+                    existingGame.update(
+                            gameData.getGameStatus(),
+                            gameData.getHomeResultScore(),
+                            gameData.getAwayResultScore()
+                    );
+                } else {
+                    Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
+                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
+                    Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
+                            .orElseThrow(() -> new RuntimeException("homeTeam not found"));
+                    Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
+                            .orElseThrow(() -> new RuntimeException("awayTeam not found"));
+
+                    if (stadium == null || homeTeam == null || awayTeam == null) {
+                        continue;
+                    }
+
+                    Game newGame = Game.builder()
+                            .stadium(stadium)
+                            .homeTeam(homeTeam)
+                            .awayTeam(awayTeam)
+                            .gameTime(saveDTO.getGameTime())
+                            .gameStatus(saveDTO.getGameStatus())
+                            .homeResultScore(saveDTO.getHomeResultScore())
+                            .awayResultScore(saveDTO.getAwayResultScore())
+                            .broadcastChannel(saveDTO.getBroadcastChannel())
+                            .homePredictionScore(saveDTO.getHomePredictionScore())
+                            .awayPredictionScore(saveDTO.getAwayPredictionScore())
+                            .totalPredictionScore(saveDTO.getTotalPredictionScore())
+                            .homeWinPer(saveDTO.getHomeWinPer())
+                            .awayWinPer(saveDTO.getAwayWinPer())
+                            .build();
+
+                    gameRepository.save(newGame);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("오늘 경기 업데이트 실패: " + e.getMessage(), e);
+        } finally {
+            if (driver != null) {
+                try {
+                    Thread.sleep(3000);
+                    driver.quit();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 }

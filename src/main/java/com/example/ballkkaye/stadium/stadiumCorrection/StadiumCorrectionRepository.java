@@ -5,25 +5,22 @@ import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @RequiredArgsConstructor
 @Repository
 public class StadiumCorrectionRepository {
     private final EntityManager em;
 
-    public Optional<Double> getCorrectionByStadiumIdAndYear(Integer stadiumId, int year) {
+    public double getCorrectionByStadiumIdAndYear(Integer stadiumId, int year) {
         try {
-            Double correction = em.createQuery("""
+            return em.createQuery("""
                                 SELECT s.correction FROM StadiumCorrection s
                                 WHERE s.stadium.id = :stadiumId AND s.thisYear = :year
                             """, Double.class)
                     .setParameter("stadiumId", stadiumId)
                     .setParameter("year", year)
                     .getSingleResult();
-            return Optional.ofNullable(correction);
         } catch (NoResultException e) {
-            return Optional.empty();
+            return 1.0; // 기본값 (필요에 따라 바꿔도 됨)
         }
     }
 }

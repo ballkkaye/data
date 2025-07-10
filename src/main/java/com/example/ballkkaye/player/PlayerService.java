@@ -125,7 +125,7 @@ public class PlayerService {
 
         for (PlayerRequest.Dto dto : matchedPlayers) {
             Team team = teamRepository.findById(dto.getTeamId())
-                    .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다: id"));
+                    .orElseThrow(() -> new RuntimeException("team not found: id=" + dto.getTeamId()));
 
             Player player = Player.builder()
                     .kboPlayerId(dto.getKboPlayerId())

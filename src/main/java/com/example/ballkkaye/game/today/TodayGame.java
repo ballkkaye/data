@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 
@@ -70,6 +71,10 @@ public class TodayGame {
     @CreationTimestamp
     private Timestamp createdAt;
 
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Timestamp updatedAt;
+
     @Builder
     public TodayGame(Stadium stadium,
                      Team homeTeam,
@@ -101,4 +106,11 @@ public class TodayGame {
         this.game = game;
     }
 
+    public void update(GameStatus gameStatus,
+                       Integer homeResultScore,
+                       Integer awayResultScore) {
+        this.gameStatus = gameStatus;
+        this.homeResultScore = homeResultScore;
+        this.awayResultScore = awayResultScore;
+    }
 }

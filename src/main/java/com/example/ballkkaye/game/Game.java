@@ -32,7 +32,7 @@ public class Game {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Team homeTeam;
 
-    @Column
+    @Column(name = "game_status")
     @Enumerated(EnumType.STRING)
     private GameStatus gameStatus;
 
@@ -68,8 +68,7 @@ public class Game {
     private Timestamp createdAt;
 
     @Builder
-    public Game(Integer id, Stadium stadium, Team awayTeam, Team homeTeam, GameStatus gameStatus, Timestamp gameTime, Integer homeResultScore, Integer awayResultScore, BroadcastChannel broadcastChannel, Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore, Double homeWinPer, Double awayWinPer) {
-        this.id = id;
+    public Game(Stadium stadium, Team awayTeam, Team homeTeam, GameStatus gameStatus, Timestamp gameTime, Integer homeResultScore, Integer awayResultScore, BroadcastChannel broadcastChannel, Double homePredictionScore, Double awayPredictionScore, Double totalPredictionScore, Double homeWinPer, Double awayWinPer) {
         this.stadium = stadium;
         this.awayTeam = awayTeam;
         this.homeTeam = homeTeam;
@@ -84,4 +83,13 @@ public class Game {
         this.homeWinPer = homeWinPer;
         this.awayWinPer = awayWinPer;
     }
+
+    public void update(GameStatus gameStatus,
+                       Integer homeResultScore,
+                       Integer awayResultScore) {
+        this.gameStatus = gameStatus;
+        this.homeResultScore = homeResultScore;
+        this.awayResultScore = awayResultScore;
+    }
+
 }

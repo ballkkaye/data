@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
@@ -32,18 +31,17 @@ public class TodayStartingPitcherRepository {
         }
     }
 
-    public Optional<Double> getPitcherEraByGameAndTeam(Game game, Team team) {
+    public Double getPitcherEraByGameAndTeam(Game game, Team team) {
         try {
-            Double era = em.createQuery("""
+            return em.createQuery("""
                                 SELECT t.ERA FROM TodayStartingPitcher t
                                 WHERE t.game = :game AND t.player.team = :team
                             """, Double.class)
                     .setParameter("game", game)
                     .setParameter("team", team)
                     .getSingleResult();
-            return Optional.ofNullable(era);
         } catch (NoResultException e) {
-            return Optional.empty();
+            return null;
         }
     }
 
