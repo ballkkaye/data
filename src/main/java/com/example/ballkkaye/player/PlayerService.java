@@ -32,8 +32,8 @@ public class PlayerService {
         WebDriverManager.chromedriver().setup();
         // 크롬 브라우저 옵션 설정 (최대화, 팝업 차단 해제) << merge 할 때는 --headless=new 로 실행하고 눈으로 확인할 때는 --start-maximized 로 실행하면 됨
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
-//        options.addArguments("--headless=new");
+//        options.addArguments("--start-maximized");
+        options.addArguments("--headless=new");
         options.addArguments("--disable-popup-blocking");
 
         // WebDriver 인스턴스 생성
@@ -90,26 +90,29 @@ public class PlayerService {
                         String playerName = link.getText();
                         String playerTeam = cells.get(2).getText().trim(); // 예: LG 트윈스
 
-                        // 추가!!: 이미 리스트에 추가된 선수 이름인지 확인
+                        // teamId를 먼저 가져옴 (이후 중복검사에도 사용됨)
+                        Integer teamId = UtilMapper.getTeamId(playerTeam);
+                        if (teamId == null) {
+                            log.warn("매핑되지 않은 팀명: " + playerTeam);
+                            continue;
+                        }
+
+                        // 중복 검사: 같은 이름 & 같은 팀 ID인 경우만 중복으로 간주
                         boolean isDuplicate = false;
                         for (PlayerRequest.Dto playerDto : matchedPlayers) {
-                            if (playerDto.getName().equals(playerName)) {
+                            if (playerDto.getName().equals(playerName) && playerDto.getTeamId().equals(teamId)) {
                                 isDuplicate = true;
-                                break;  // 중복된 선수는 더 이상 추가하지 않도록 함
+                                break;
                             }
                         }
 
-                        // 셀에 표시된 팀명이 현재 선택된 팀명과 같을 경우에만 저장
-                        if (!isDuplicate && playerTeam.equals(teamVisibleName.trim())) {  // 중복되지 않았고 팀명이 일치하는 경우만 추가
-                            Integer teamId = UtilMapper.getTeamId(playerTeam); // DB와 매핑된 teamId 가져오기
-                            if (teamId != null) {
-                                matchedPlayers.add(new PlayerRequest.Dto(playerId, playerName, teamId));
-                            } else {
-                                // System.out.println("매핑되지 않은 팀명: " + playerTeam);
-                            }
+                        // 팀명이 현재 선택된 팀명이면서 중복이 아닐 때만 저장
+                        if (!isDuplicate && playerTeam.equals(teamVisibleName.trim())) {
+                            matchedPlayers.add(new PlayerRequest.Dto(playerId, playerName, teamId));
                         } else if (isDuplicate) {
-                            log.info("중복된 선수 발견, 추가하지 않음: " + playerName); // 중복된 선수는 추가하지 않음
+                            log.info("중복된 선수 발견, 추가하지 않음: " + playerName + " (" + playerTeam + ")");
                         }
+
                     }
 
                     // 다음 페이지 버튼 찾고 있으면 클릭
