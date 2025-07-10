@@ -1,5 +1,6 @@
 package com.example.ballkkaye.team.record.today;
 
+import com.example.ballkkaye.publisher.PublisherService;
 import com.example.ballkkaye.team.record.TeamRecord;
 import com.example.ballkkaye.team.record.TeamRecordRepository;
 import jakarta.transaction.Transactional;
@@ -14,6 +15,7 @@ import java.util.List;
 public class TodayTeamRecordService {
     private final TodayTeamRecordRepository todayTeamRecordRepository;
     private final TeamRecordRepository teamRecordRepository;
+    private final PublisherService publisherService;
 
     // TodayTeamRecord 테이블 삭제 후 갱신
     @Transactional
@@ -30,5 +32,7 @@ public class TodayTeamRecordService {
         }
 
         todayTeamRecordRepository.save(todayTeamRecords);
+        // 이벤트 발행 추가
+        publisherService.publishTeamRecordUpdated();
     }
 }
