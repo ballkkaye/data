@@ -3,6 +3,7 @@ package com.example.ballkkaye.game.today;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.game.GameRepository;
 import com.example.ballkkaye.player.startingPitcher.today.TodayStartingPitcherRepository;
+import com.example.ballkkaye.publisher.PublisherService;
 import com.example.ballkkaye.stadium.stadiumCorrection.StadiumCorrectionRepository;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.record.today.TodayTeamRecord;
@@ -27,6 +28,7 @@ public class TodayGameService {
     private final TodayTeamRecordRepository todayTeamRecordRepository;
     private final StadiumCorrectionRepository stadiumCorrectionRepository;
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
+    private final PublisherService publisherService;
 
     @Transactional
     public void syncTodayGames() {
@@ -114,6 +116,8 @@ public class TodayGameService {
                         .build();
 
                 todayGameRepository.save(newTodayGame);
+                // 여기서 라인업 업데이트 이벤트 발행
+                publisherService.publishGameUpdated(game.getId());
             }
         }
     }
