@@ -30,36 +30,13 @@ public class GameRepository {
     }
 
 
-    // 오늘 날짜의 경기 전체 조회 (gameId, gameTime, stadiumId 포함)
-    public List<Game> findByToday() {
-        try {
-            LocalDate today = LocalDate.now(); // ex) 2025-07-04
-            LocalDateTime startOfDay = today.atStartOfDay(); // 2025-07-04 00:00:00
-            LocalDateTime endOfDay = today.plusDays(1).atStartOfDay(); // 2025-07-05 00:00:00
-
-            return em.createQuery("""
-                                SELECT g
-                                FROM Game g
-                                WHERE g.gameTime >= :start AND g.gameTime < :end
-                            """, Game.class)
-                    .setParameter("start", Timestamp.valueOf(startOfDay))
-                    .setParameter("end", Timestamp.valueOf(endOfDay))
-                    .getResultList();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-    }
-
-
-    public Game findGameByDateAndTeams(String gameDate, Integer homeTeamId, Integer awayTeamId) {
+    public Optional<Game> findGameByDateAndTeams(String gameDate, Integer homeTeamId, Integer awayTeamId) {
         try {
             LocalDate date = LocalDate.parse(gameDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
             Timestamp startOfDay = Timestamp.valueOf(date.atStartOfDay());
             Timestamp endOfDay = Timestamp.valueOf(date.plusDays(1).atStartOfDay());
 
-            return em.createQuery("""
+            Game game = em.createQuery("""
                                 SELECT g
                                 FROM Game g
                                 WHERE g.gameTime >= :startOfDay
@@ -73,11 +50,12 @@ public class GameRepository {
                     .setParameter("awayTeamId", awayTeamId)
                     .getSingleResult();
 
+            return Optional.of(game);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return Optional.empty(); // 실패 시 빈 Optional 반환
         }
     }
+
 
     public List<Game> findTodayGame(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
@@ -119,6 +97,7 @@ public class GameRepository {
 
         return result.stream().findFirst();
     }
+
     public Optional<Game> findById(Integer id) {
         try {
             Game game = em.find(Game.class, id);
@@ -126,6 +105,55 @@ public class GameRepository {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+
+    /**
+     * 오늘 날짜 기준으로 진행 예정인 경기(Game)들을 조회
+     * - 기준: 오늘 자정(00:00)부터 내일 자정 직전(23:59:59.999)까지의 gameTime 범위
+     * - Timestamp 기반으로 정확한 시간 비교를 수행
+     * - 실패 시 빈 리스트 반환
+     */
+    public List<Game> findByToday() {
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDateTime start = today.atStartOfDay();
+            LocalDateTime end = today.plusDays(1).atStartOfDay();
+
+            return em.createQuery("""
+                                SELECT g FROM Game g
+                                WHERE g.gameTime >= :start AND g.gameTime < :end
+                            """, Game.class)
+                    .setParameter("start", Timestamp.valueOf(start))
+                    .setParameter("end", Timestamp.valueOf(end))
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+
+    /**
+     * 같은 날짜, 같은 홈/원정팀 조합으로 등록된 모든 경기 조회
+     * → 더블헤더 감지에 활용됨
+     */
+    public List<Game> findByGameDateAndTeamCombination(LocalDate date, Integer homeTeamId, Integer awayTeamId) {
+        Timestamp startOfDay = Timestamp.valueOf(date.atStartOfDay());
+        Timestamp endOfDay = Timestamp.valueOf(date.plusDays(1).atStartOfDay());
+        return em.createQuery("""
+                            SELECT g
+                            FROM Game g
+                            WHERE g.gameTime >= :startOfDay
+                              AND g.gameTime < :endOfDay
+                              AND g.homeTeam.id = :homeTeamId
+                              AND g.awayTeam.id = :awayTeamId
+                        """, Game.class)
+                .setParameter("startOfDay", startOfDay)
+                .setParameter("endOfDay", endOfDay)
+                .setParameter("homeTeamId", homeTeamId)
+                .setParameter("awayTeamId", awayTeamId)
+                .getResultList();
     }
 }
 

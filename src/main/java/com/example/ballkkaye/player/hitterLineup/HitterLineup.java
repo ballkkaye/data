@@ -4,6 +4,7 @@ import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.player.Player;
 import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -51,4 +52,21 @@ public class HitterLineup {
 
     @CreationTimestamp
     private Timestamp createdAt;
+
+
+    @Builder
+    public HitterLineup(Integer id, Game game, Team team, Player player, Integer hitterOrder, String position, Integer ab, Integer h, Double avg, Double seasonAvg, Double ops, Timestamp createdAt) {
+        this.id = id;
+        this.game = game;
+        this.team = team;
+        this.player = player;
+        this.hitterOrder = hitterOrder;
+        this.position = position;
+        this.ab = ab;
+        this.h = h;
+        this.avg = avg;
+        this.seasonAvg = seasonAvg;
+        this.ops = ops;
+        this.createdAt = createdAt;
+    }
 }
