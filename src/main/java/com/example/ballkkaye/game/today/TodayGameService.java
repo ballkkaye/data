@@ -62,6 +62,8 @@ public class TodayGameService {
             Double homeOps = homeRecord.getOPS();
             Double awayOps = awayRecord.getOPS();
             if (homeOps == null || awayOps == null) continue;
+
+
             Double homePitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, home);
             Double awayPitcherEra = todayStartingPitcherRepository.getPitcherEraByGameAndTeam(game, away);
 

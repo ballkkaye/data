@@ -37,7 +37,10 @@ public class UtilMapper {
         return stadiumNameToId.get(shortName);
     }
 
-    // KBO teamCode와 매핑
+
+    /**
+     * KBO teamCode와 매핑
+     */
     private static final Map<String, Integer> teamCodeToId = Map.of(
             "LG", 1,   // LG 트윈스
             "OB", 2,   // 두산 베어스
@@ -54,6 +57,22 @@ public class UtilMapper {
 
     public static Integer getTeamIdByCode(String code) {
         return teamCodeToId.get(code);
+    }
+
+
+    /**
+     * 팀 코드와 전체 팀명을 매핑하는 상수 Map.
+     * - KBO 메인페이지에서 제공하는 팀 약어 코드(예: "OB", "LT")를
+     * 실제 팀 전체 이름(예: "두산", "롯데")으로 매핑
+     * 예: "OB" → "두산", "LT" → "롯데"
+     */
+    private static final Map<String, String> teamCodeToFullName = Map.of(
+            "LG", "LG", "OB", "두산", "WO", "키움", "SK", "SSG",
+            "HT", "KIA", "SS", "삼성", "LT", "롯데", "HH", "한화", "NC", "NC", "KT", "KT"
+    );
+
+    public static String getTeamFullNameByCode(String code) {
+        return teamCodeToFullName.get(code); // "OB" → "두산"
     }
 
 }

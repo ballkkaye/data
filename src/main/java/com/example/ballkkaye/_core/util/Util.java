@@ -1,12 +1,64 @@
 package com.example.ballkkaye._core.util;
 
 import com.example.ballkkaye.common.enums.WindDirection;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class Util {
+
+    /**
+     * 맞대결 전적 페이지 셀렉트 박스의 옵션 중 keyword를 포함한 항목을 선택
+     * 포함된 항목이 없으면 예외 반환
+     */
+    public static void selectByContainingText(Select select, String keyword) {
+        boolean found = false;
+        for (WebElement option : select.getOptions()) {
+            if (option.getText().contains(keyword)) {
+                select.selectByVisibleText(option.getText());
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            throw new NoSuchElementException("드롭다운에서 '" + keyword + "' 포함된 옵션 없음");
+        }
+    }
+
+
+    /**
+     * 타자의 시즌 타율 문자열을 Double로 안전하게 파싱.
+     * 마지막 컬럼에서 값을 가져오며, "-" 또는 공백이면 0.0을 반환
+     */
+    public static Double parseSeasonAVG(List<WebElement> cols) {
+        try {
+            String avgText = cols.get(cols.size() - 1).getText().trim(); // 예: ".294", "-" 등
+            if (avgText.equals("-") || avgText.isEmpty()) return null; // 정보 없음은 null
+            return Double.parseDouble(avgText);
+        } catch (Exception e) {
+            return null; // 파싱 실패도 null 처리
+        }
+    }
+
+
+    /**
+     * 문자열을 Integer로 변환하되, 실패 시 0을 반환
+     */
+    public static int parseIntSafe(String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 
     public static class GridXY {
         public final int nx;
@@ -23,13 +75,6 @@ public class Util {
         }
     }
 
-    /**
-     * 위도(latitude), 경도(longitude)를 기상청 단기/초단기 예보용 격자 좌표로 변환
-     *
-     * @param lat 위도 (예: 37.5665)
-     * @param lon 경도 (예: 126.9780)
-     * @return 격자 좌표 (nx, ny)
-     */
     public static GridXY convertToGrid(double lat, double lon) {
         double RE = 6371.00877;  // 지구 반지름(km)
         double GRID = 5.0;       // 격자 간격(km)
@@ -65,7 +110,6 @@ public class Util {
         return new GridXY(nx, ny);
     }
 
-
     /**
      * 풍향 각도를 WindDirection Enum으로 변환 (0~360도 기준)
      */
@@ -82,7 +126,6 @@ public class Util {
         else return WindDirection.NORTH_WEST;
     }
 
-
     /**
      * double 파싱에 실패할 경우 0.0 반환
      */
@@ -93,7 +136,6 @@ public class Util {
             return 0.0;
         }
     }
-
 
     /**
      * 주어진 경기 시간 기준으로, 초단기예보에 사용할 가장 가까운 base_time (예보 기준 시각)을 구한다.
@@ -128,7 +170,6 @@ public class Util {
         return base.format(DateTimeFormatter.ofPattern("HHmm"));
     }
 
-
     /**
      * 초단기예보 항목에서 제공되는 fcstDate (yyyyMMdd) 및 fcstTime (HHmm) 문자열을 Java의 Timestamp 객체로 변환한다.
      */
@@ -144,5 +185,95 @@ public class Util {
      */
     public static String getBaseDate(LocalDateTime dateTime) {
         return dateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    /**
+     * 문자열을 double로 변환하되, 실패 시 0.0을 반환
+     */
+    public static double parseDoubleSafe(String s) {
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+
+    /**
+     * 전체 구장 이름을 KBO 메인페이지의 "game-cont" 엘리먼트의 `s_nm` 값에 맞춰 단축 형태로 변환함.
+     * 예: "잠실야구장" → "잠실"
+     * KBO 메인페이지의 경기 정보(li.game-cont)의 stadium 이름은 축약형으로 제공되기 때문에,
+     * DB 또는 API상의 전체 구장명을 매핑해주는 용도임.
+     */
+    public static String simplifyStadiumName(String fullName) {
+        return switch (fullName.trim()) {
+            case "잠실야구장" -> "잠실";
+            case "고척스카이돔" -> "고척";
+            case "수원 KT위즈파크" -> "수원";
+            case "인천 SSG 랜더스필드" -> "문학";
+            case "광주-기아 챔피언스필드" -> "광주";
+            case "대구 삼성라이온즈파크" -> "대구";
+            case "부산 사직야구장" -> "사직";
+            case "대전 한화생명이글스파크" -> "대전(신)";
+            case "창원 NC파크" -> "창원";
+            case "청주 야구장" -> "청주";
+            case "울산 문수야구장" -> "울산";
+            case "포항 야구장" -> "포항";
+            case "군산 월명야구장" -> "군산";
+            default -> fullName; // fallback
+        };
+    }
+
+
+    /**
+     * HTML 문서에서 시즌 전적 텍스트를 추출하는 유틸 메서드.
+     * 예: "시즌 10승 3패 VS 상대 ..." → "10승 3패"
+     */
+    public static String parseResultString(Document doc) {
+        Element recordEl = doc.selectFirst(".record");
+        if (recordEl == null) return "없음";
+        String txt = recordEl.text().replace("시즌 ", "").trim();
+        return txt.isEmpty() ? "없음" : txt.contains("VS") ? txt.split("VS")[0].trim() : txt;
+    }
+
+
+    /**
+     * HTML 문서 내 두 번째 <img> 태그에서 프로필 이미지 URL 추출.
+     * URL이 //로 시작하면 https: 접두사를 붙여 반환.
+     */
+    public static String parseImgUrl(Document doc) {
+        Elements imgs = doc.select("img");
+        if (imgs.size() >= 2) {
+            String path = imgs.get(1).attr("src");
+            return path.startsWith("http") ? path : "https:" + path;
+        }
+        return "";
+    }
+
+    /**
+     * 문자열을 안전하게 Double로 파싱하는 유틸 메서드.
+     * null, 빈 문자열, "-" 등은 null로 처리.
+     */
+    public static Double parseNullableDouble(String s) {
+        if (s == null || s.trim().equals("-")) return null;
+        try {
+            return Double.parseDouble(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    /**
+     * 문자열을 안전하게 Integer로 파싱하는 유틸 메서드.
+     * null, 빈 문자열, "-" 등은 null로 처리.
+     */
+    public static Integer safeParseInt(String s) {
+        if (s == null || s.trim().equals("-")) return null;
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
