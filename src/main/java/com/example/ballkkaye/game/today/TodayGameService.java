@@ -1,9 +1,9 @@
 package com.example.ballkkaye.game.today;
 
+import com.example.ballkkaye.fcm.FcmService;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.game.GameRepository;
 import com.example.ballkkaye.player.startingPitcher.today.TodayStartingPitcherRepository;
-import com.example.ballkkaye.publisher.PublisherService;
 import com.example.ballkkaye.stadium.stadiumCorrection.StadiumCorrectionRepository;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.record.today.TodayTeamRecord;
@@ -25,7 +25,7 @@ public class TodayGameService {
     private final TodayTeamRecordRepository todayTeamRecordRepository;
     private final StadiumCorrectionRepository stadiumCorrectionRepository;
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
-    private final PublisherService publisherService;
+    private final FcmService fcmService;
 
     @Transactional
     public void syncTodayGames() {
@@ -122,7 +122,7 @@ public class TodayGameService {
         }
         // 루프 종료 후 저장된 게임이 하나라도 있으면 이벤트 발행
         if (!insertedGameIds.isEmpty()) {
-            publisherService.publishGameUpdatedEvent();
+            fcmService.sendToUserRoleUsers("오늘의 경기가 업데이트 되었습니다!");
         }
     }
 }
