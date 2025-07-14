@@ -1,8 +1,8 @@
 package com.example.ballkkaye.player.startingPitcher.today;
 
+import com.example.ballkkaye.fcm.FcmService;
 import com.example.ballkkaye.player.startingPitcher.StartingPitcher;
 import com.example.ballkkaye.player.startingPitcher.StartingPitcherRepository;
-import com.example.ballkkaye.publisher.PublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 public class TodayStartingPitcherService {
     private final TodayStartingPitcherRepository todayStartingPitcherRepository;
     private final StartingPitcherRepository startingPitcherRepository;
-    private final PublisherService publisherService;
+    private final FcmService fcmService;
 
     // 오늘 경기의 선발투수를 TodayStartingPitcher로 복사 후 저장
     @Transactional
@@ -67,7 +67,7 @@ public class TodayStartingPitcherService {
         log.info("오늘({}) 선발투수 {}명 복사 완료", today, copied.size());
 
         // [5] 오늘 선발투수 복사 완료 후 이벤트 발행 (구독자 알림)
-        publisherService.publishStartingPitcherUpdatedEvent();
+        fcmService.sendToUserRoleUsers("오늘의 승리예측이 업데이트 되었습니다!");
     }
 }
 
