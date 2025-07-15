@@ -6,6 +6,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,7 @@ public class FcmService {
                 String response = FirebaseMessaging.getInstance().send(message);
                 log.info("FCM 전송 완료: {}", response);
             } catch (FirebaseMessagingException e) {
+                Sentry.captureException(e);
                 log.error("FCM 전송 실패 ({}): {}", token, e.getMessage());
             }
         }
