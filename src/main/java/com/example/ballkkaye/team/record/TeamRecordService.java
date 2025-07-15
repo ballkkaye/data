@@ -1,5 +1,7 @@
 package com.example.ballkkaye.team.record;
 
+import com.example.ballkkaye._core.error.ex.Exception400;
+import com.example.ballkkaye._core.error.ex.Exception404;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
@@ -7,6 +9,7 @@ import com.example.ballkkaye.team.record.today.TodayTeamRecord;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRepository;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRequest;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.sentry.Sentry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -209,8 +212,8 @@ public class TeamRecordService {
                 eraList.add(Double.parseDouble(eraCell.getText().trim()));
             }
 
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            Sentry.captureException(e);
         }
 
         List<TeamRecordRequest.Dto> dtoList = new ArrayList<>();
@@ -259,13 +262,13 @@ public class TeamRecordService {
                 dtoList.add(dto);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
         }
         List<TeamRecord> entities = new ArrayList<>();
 
         for (TeamRecordRequest.Dto dto : dtoList) {
             Team team = teamRepository.findById(dto.getTeamId())
-                    .orElseThrow(() -> new RuntimeException("team not found: id=" + dto.getTeamId()));
+                    .orElseThrow(() -> new Exception404("team not found: id=" + dto.getTeamId()));
 
             TeamRecord entity = TeamRecord.builder()
                     .team(team)
@@ -286,7 +289,7 @@ public class TeamRecordService {
             entities.add(entity);
         }
         if (entities.size() < 10) {
-            throw new RuntimeException(); // TODO 이거 나중에 수제 예외처리로 바꿔야함
+            throw new Exception400("팀 기록이 10개 미만입니다.");
         }
         teamRecordRepository.saveAll(entities);
         todayTeamRecordRepository.deleteAll();

@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+# 비밀 키 파일은 절대 Git에 포함 금지
+/config/firebase-key.json
+.env
