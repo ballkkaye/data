@@ -1,59 +1,88 @@
 package com.example.ballkkaye._core.config;
 
+import com.example.ballkkaye._core.util.Base64Util;
+import com.example.ballkkaye.fcm.FirebaseProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import jakarta.annotation.PostConstruct;
+import com.google.firebase.messaging.FirebaseMessaging;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Base64;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
+/**
+ * 이 클래스는 Spring Boot 애플리케이션에서 Firebase Admin SDK를 초기화하고
+ * FirebaseMessaging 인스턴스를 Bean으로 등록하는 설정을 담당합니다.
+ * application.properties에 등록된 개별 키 값을 조합하여 유연하게 동작합니다.
+ */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class FcmConfig {
 
-    @Value("${FIREBASE_CONFIG_BASE64}") // application.properties에 설정한 키 사용
-    private String firebaseConfigBase64;
+    // 1. application.properties의 firebase 속성을 담고 있는 객체를 주입받습니다.
+    private final FirebaseProperties firebaseProperties;
+    // 2. 자바 객체를 JSON 문자열로 변환하기 위해 Spring이 관리하는 ObjectMapper를 주입받습니다.
+    private final ObjectMapper objectMapper;
 
-    @PostConstruct
-    public void initFirebase() {
-        try {
-            // [1] 환경변수에서 Base64 인코딩된 Firebase 키 가져오기
-            if (firebaseConfigBase64 == null || firebaseConfigBase64.isBlank()) {
-                String msg = "FIREBASE_CONFIG_BASE64 환경변수가 설정되지 않았습니다.";
-                log.error(msg);
-                throw new IllegalStateException(msg);
+    /**
+     * application.properties의 속성 값을 사용하여 FirebaseApp을 초기화하고 Bean으로 등록하는 메소드.
+     *
+     * @return 초기화된 FirebaseApp 인스턴스
+     * @throws IOException 설정 파일 로드 중 발생할 수 있는 예외
+     */
+    @Bean
+    public FirebaseApp firebaseApp() throws IOException {
+        // 1. properties에서 Base64로 인코딩된 키를 가져옵니다.
+        String rawFbPrivateKey = firebaseProperties.getPrivateKey();
+
+        // 2. Base64로 디코딩합니다.
+        //    (결과: "-----BEGIN...\\nMIIEvg..." 와 같이 `\\n` 문자가 포함된 문자열)
+        String decodedPrivateKeyWithLiterals = Base64Util.decodeBase64(rawFbPrivateKey);
+
+        // 3. [핵심] 디코딩된 문자열에 포함된 `\\n`을 실제 줄 바꿈 문자 `\n`으로 치환합니다.
+        String finalFormattedPrivateKey = decodedPrivateKeyWithLiterals.replace("\\n", "\n");
+
+
+        // 4. 최종적으로 포맷된 키를 properties 객체에 다시 설정합니다.
+        firebaseProperties.setPrivateKey(finalFormattedPrivateKey);
+
+        // 5. 올바른 키가 포함된 객체를 JSON으로 직렬화합니다.
+        String json = objectMapper.writeValueAsString(firebaseProperties);
+
+
+        // 6. 생성된 JSON 문자열로부터 스트림을 만들어 Firebase를 초기화합니다.
+        InputStream serviceAccountStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+
+        try (InputStream serviceAccount = serviceAccountStream) {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            // 5. 앱이 이미 초기화되었는지 확인하여 중복 초기화를 방지합니다.
+            if (FirebaseApp.getApps().isEmpty()) {
+                return FirebaseApp.initializeApp(options);
+            } else {
+                return FirebaseApp.getInstance();
             }
-
-            // [3] 디코딩하여 config/firebase-key.json 로 저장
-            byte[] decoded = Base64.getDecoder().decode(firebaseConfigBase64);
-
-            // [4] Firebase 초기화
-            try {
-                // JSON 문자열로 Firebase 인증 정보를 생성
-                String json = new String(decoded);
-                GoogleCredentials credentials = GoogleCredentials.fromStream(
-                        new java.io.ByteArrayInputStream(json.getBytes())
-                );
-
-                FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(credentials)
-                        .build();
-
-                if (FirebaseApp.getApps().isEmpty()) {
-                    FirebaseApp.initializeApp(options);
-                } else {
-                    log.info("FirebaseApp 이미 초기화되어 있음 - 중복 초기화 생략");
-                }
-
-            } catch (Exception e) {
-                log.error("Firebase 초기화 실패: {}", e.getMessage(), e);
-            }
-
-        } catch (Exception e) {
-            log.error("FCM 초기화 실패: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * FirebaseMessaging 인스턴스를 Bean으로 등록하는 메소드.
+     *
+     * @param firebaseApp 위에서 초기화되고 등록된 FirebaseApp Bean을 주입받습니다.
+     * @return FirebaseMessaging 인스턴스
+     */
+    @Bean
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
     }
 }

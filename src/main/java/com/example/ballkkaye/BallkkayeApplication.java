@@ -9,7 +9,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class BallkkayeApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BallkkayeApplication.class, args);
+        // 3. SpringApplication에 주입
+        SpringApplication app = new SpringApplication(BallkkayeApplication.class);
+        // 4. 실행
+        app.run(args);
     }
-
 }
+
+

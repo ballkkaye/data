@@ -10,7 +10,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -154,7 +153,6 @@ public class StartingPitcherService {
             }
 
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("선발투수 크롤링 중 예외 발생", e);
         } finally {
             if (driver != null) driver.quit();
