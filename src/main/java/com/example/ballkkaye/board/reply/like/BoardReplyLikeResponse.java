@@ -1,5 +1,6 @@
 package com.example.ballkkaye.board.reply.like;
 
+
 import lombok.Data;
 
 public class BoardReplyLikeResponse {

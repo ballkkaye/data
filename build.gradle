@@ -6,9 +6,17 @@ plugins {
 }
 
 sentry {
+    // 소스 코드 연동 기능을 활성화합니다.
     includeSourceContext = true
+
+    // Sentry.io 에서 사용하는 실제 조직 이름(Organization Slug)을 입력합니다.
     org = "ballkkaye"
-    projectName = "java-spring-boot"
+
+    // Sentry.io 에서 생성한 실제 프로젝트 이름(Project Slug)을 입력합니다.
+    projectName = "ballkkaye"
+
+    // Sentry 인증 토큰입니다
+    // System.getenv("SENTRY_AUTH_TOKEN")
     authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
@@ -32,10 +40,11 @@ repositories {
 }
 
 dependencies {
+    implementation platform('io.sentry:sentry-bom:8.17.0')
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3' // 마리아 DB
     implementation 'io.github.cdimascio:dotenv-java:3.2.0' // env
     implementation 'com.google.firebase:firebase-admin:9.2.0' // firebase sdk
-    implementation 'com.squareup.okhttp3:okhttp:5.1.0' // okhttp
     implementation 'org.jsoup:jsoup:1.20.1'
     implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
     implementation 'com.google.code.gson:gson:2.13.1'
