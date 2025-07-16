@@ -1,5 +1,6 @@
 package com.example.ballkkaye.game;
 
+import com.example.ballkkaye._core.error.ex.Exception404;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.common.enums.BroadcastChannel;
 import com.example.ballkkaye.common.enums.GameStatus;
@@ -8,9 +9,11 @@ import com.example.ballkkaye.stadium.StadiumRepository;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.sentry.Sentry;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -35,6 +38,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class GameService {
@@ -88,12 +92,12 @@ public class GameService {
                     }
 
                     Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
-                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
+                            .orElseThrow(() -> new Exception404("Stadium not found"));
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
-                            .orElseThrow(() -> new RuntimeException("homeTeam 찾을 수 없음: id=" + saveDTO.getHomeTeamId()));
+                            .orElseThrow(() -> new Exception404("homeTeam 찾을 수 없음: id=" + saveDTO.getHomeTeamId()));
 
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
-                            .orElseThrow(() -> new RuntimeException("awayTeam 찾을 수 없음: id=" + saveDTO.getAwayTeamId()));
+                            .orElseThrow(() -> new Exception404("awayTeam 찾을 수 없음: id=" + saveDTO.getAwayTeamId()));
 
                     Game game = Game.builder()
                             .stadium(stadium)
@@ -115,13 +119,16 @@ public class GameService {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("크롤링 중 오류 발생", e);
+            Sentry.captureException(e);
+            log.error("크롤링 중 오류 발생", e);
         } finally {
             if (driver != null) {
                 try {
                     Thread.sleep(3000);
                     driver.quit();
                 } catch (InterruptedException e) {
+                    Sentry.captureException(e);
+                    log.error("WebDriver 종료 중 인터럽트 발생", e);
                     Thread.currentThread().interrupt();
                 }
             }
@@ -211,7 +218,11 @@ public class GameService {
             }
 
             if (awayTeamId == null || homeTeamId == null) {
-                throw new RuntimeException("팀 이름 매핑 실패: away or home team ID is null");
+                String message = "팀 이름 매핑 실패: awayTeamId=" + awayTeamId + ", homeTeamId=" + homeTeamId;
+                RuntimeException e = new RuntimeException(message);
+                Sentry.captureException(e);
+                log.error(message, e);
+                throw e;
             }
 
             GameStatus gameStatus;
@@ -333,11 +344,11 @@ public class GameService {
                     );
                 } else {
                     Stadium stadium = stadiumRepository.findById(saveDTO.getStadiumId())
-                            .orElseThrow(() -> new IllegalArgumentException("Stadium not found"));
+                            .orElseThrow(() -> new Exception404("Stadium not found"));
                     Team homeTeam = teamRepository.findById(saveDTO.getHomeTeamId())
-                            .orElseThrow(() -> new RuntimeException("homeTeam not found"));
+                            .orElseThrow(() -> new Exception404("homeTeam not found"));
                     Team awayTeam = teamRepository.findById(saveDTO.getAwayTeamId())
-                            .orElseThrow(() -> new RuntimeException("awayTeam not found"));
+                            .orElseThrow(() -> new Exception404("awayTeam not found"));
 
                     if (stadium == null || homeTeam == null || awayTeam == null) {
                         continue;
@@ -363,14 +374,16 @@ public class GameService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("오늘 경기 업데이트 실패: " + e.getMessage(), e);
+            Sentry.captureException(e);
+            log.error("오늘 경기 업데이트 실패: " + e.getMessage(), e);
         } finally {
             if (driver != null) {
                 try {
                     Thread.sleep(3000);
                     driver.quit();
                 } catch (InterruptedException e) {
+                    Sentry.captureException(e);
+                    log.error("WebDriver 종료 중 인터럽트 발생", e);
                     Thread.currentThread().interrupt();
                 }
             }

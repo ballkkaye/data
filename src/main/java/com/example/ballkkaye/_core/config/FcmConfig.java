@@ -1,51 +1,66 @@
 package com.example.ballkkaye._core.config;
 
-import com.example.ballkkaye._core.error.ex.Exception400;
-import com.example.ballkkaye._core.error.ex.Exception404;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import io.sentry.Sentry;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 
 @Slf4j
 @Configuration
 public class FcmConfig {
 
-    // Firebase Admin SDK를 초기화
+    private static final String CONFIG_DIR = "config";
+    private static final String FIREBASE_KEY_FILE = "firebase-key.json";
+
     @PostConstruct
     public void initFirebase() {
         try {
-            // [1] 환경변수에서 키 파일 경로 읽기
-            String path = System.getenv("FIREBASE_CONFIG_PATH");
-            if (path == null || path.isBlank()) {
-                throw new Exception404("FIREBASE_CONFIG_PATH 환경변수가 설정되지 않았습니다.");
+            // [1] 환경변수에서 Base64 인코딩된 Firebase 키 가져오기
+            String base64 = System.getenv("FIREBASE_CONFIG_BASE64");
+            if (base64 == null || base64.isBlank()) {
+                String msg = "FIREBASE_CONFIG_BASE64 환경변수가 설정되지 않았습니다.";
+                log.error(msg);
+                Sentry.captureMessage(msg);
+                throw new IllegalStateException(msg);
             }
 
-            // [2] 외부 파일 경로에서 Firebase 서비스 계정 키 파일 로딩
-            try (FileInputStream serviceAccount = new FileInputStream(path)) {
+            // [2] config 디렉토리 생성
+            Path configDir = Paths.get(CONFIG_DIR);
+            if (!Files.exists(configDir)) {
+                Files.createDirectories(configDir);
+            }
 
-                // [3] Firebase 인증 옵션 구성
+            // [3] 디코딩하여 config/firebase-key.json 로 저장
+            Path firebaseKeyPath = configDir.resolve(FIREBASE_KEY_FILE);
+            byte[] decoded = Base64.getDecoder().decode(base64);
+            Files.write(firebaseKeyPath, decoded);
+
+            // [4] Firebase 초기화
+            try (FileInputStream serviceAccount = new FileInputStream(firebaseKeyPath.toFile())) {
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                         .build();
 
-                // [4] FirebaseApp이 이미 초기화되지 않은 경우에만 초기화
                 if (FirebaseApp.getApps().isEmpty()) {
                     FirebaseApp.initializeApp(options);
-                    log.info("FirebaseApp 초기화 성공 (경로: {})", path);
+                    log.info("FirebaseApp 초기화 성공 (경로: {})", firebaseKeyPath);
                 } else {
                     log.info("FirebaseApp 이미 초기화되어 있음 - 중복 초기화 생략");
                 }
             }
 
-        } catch (IOException e) {
-            // [5] 파일이 없거나 JSON 파싱 실패 등
-            throw new Exception400("FCM 초기화 실패: " + e.getMessage());
+        } catch (Exception e) {
+            Sentry.captureException(e);
+            log.error("FCM 초기화 실패: {}", e.getMessage(), e);
         }
     }
 }

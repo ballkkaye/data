@@ -2,6 +2,15 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id "io.sentry.jvm.gradle" version "5.8.0"
+}
+
+sentry {
+    includeSourceContext = true
+
+    org = "ballkkaye"
+    projectName = "java-spring-boot"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 group = 'com.example'
@@ -24,6 +33,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0' // env
     implementation 'com.google.firebase:firebase-admin:9.2.0' // firebase sdk
     implementation 'com.squareup.okhttp3:okhttp:5.1.0' // okhttp
     implementation 'org.jsoup:jsoup:1.20.1'
