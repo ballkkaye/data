@@ -54,7 +54,7 @@ public class StartingPitcherService {
         try {
             // [1] 대상 날짜 지정
             String targetDate = LocalDate.now()
-//                    .plusDays(1)
+                    .plusDays(1)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             log.debug("크롤링 대상 날짜: {}", targetDate);
 
