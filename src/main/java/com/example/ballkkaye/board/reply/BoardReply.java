@@ -27,8 +27,12 @@ public class BoardReply {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id")
-    private BoardReply parentCommentId;
+    @JoinColumn(name = "parent_reply_id")
+    private BoardReply parentReplyId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tag_reply_id")
+    private BoardReply tagReplyId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

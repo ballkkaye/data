@@ -1,5 +1,6 @@
 package com.example.ballkkaye.visitRecord;
 
+import com.example.ballkkaye.common.enums.DeleteStatus;
 import com.example.ballkkaye.common.enums.Result;
 import com.example.ballkkaye.game.Game;
 import com.example.ballkkaye.team.Team;
@@ -34,8 +35,15 @@ public class VisitRecord {
     @Enumerated(EnumType.STRING)
     private Result result;
 
+    @Column
+    private String imgUrl;
+
     @Column(nullable = false)
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DeleteStatus deleteStatus;
 
     @UpdateTimestamp
     private Timestamp updatedAt;

@@ -12,9 +12,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ import java.util.TreeMap;
 
 import static com.example.ballkkaye._core.util.Util.safeParseDouble;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class WeatherUltraService {
@@ -36,6 +40,9 @@ public class WeatherUltraService {
     private final GameRepository gameRepository;
 
 
+    @Value("${WEATHER_API_AUTH_KEY}")
+    private String weatherApiAuthKey;
+
     /**
      * [스케줄러 진입점]
      * - 오늘 경기 리스트를 조회하여, 각 경기의 초단기예보를 수집/저장
@@ -43,7 +50,7 @@ public class WeatherUltraService {
      */
     @Transactional
     public void getUltraForecastAndSave() {
-        String authKey = "zFoyjf6aR62aMo3-muetCg"; // 기상청 API 인증키
+        String authKey = weatherApiAuthKey; // 기상청 API 인증키
         List<Game> todayGames = gameRepository.findByToday();
         LocalDateTime now = LocalDateTime.now();
 
@@ -198,7 +205,8 @@ public class WeatherUltraService {
             updateOrInsertAll(toSaveList);
 
         } catch (IOException e) {
-            System.out.println("[ERROR] 초단기예보 API 실패 - 경기 ID: " + gameId + " / " + e.getMessage());
+            Sentry.captureException(e);
+            log.error("초단기예보 API 실패 - 경기 ID: " + gameId + " / " + e.getMessage());
         }
     }
 
