@@ -7,7 +7,6 @@ plugins {
 
 sentry {
     includeSourceContext = true
-
     org = "ballkkaye"
     projectName = "java-spring-boot"
     authToken = System.getenv("SENTRY_AUTH_TOKEN")
@@ -65,6 +64,15 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-jar {
-    enabled = true  // 기본적인 JAR 파일만 생성되도록
+tasks {
+    // 기본적인 JAR 파일을 비활성화
+    jar {
+        enabled = false
+    }
+
+    // Spring Boot 실행 가능한 JAR 파일만 생성하도록 설정
+    bootJar {
+        archiveBaseName.set('ballkkaye')  // 원하는 이름 설정
+        archiveVersion.set('0.0.1-SNAPSHOT')  // 버전 설정
+    }
 }
