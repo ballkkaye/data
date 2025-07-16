@@ -15,13 +15,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.TreeMap;
 
 import static com.example.ballkkaye._core.util.Util.safeParseDouble;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class WeatherService {
@@ -39,6 +42,10 @@ public class WeatherService {
     private final GameRepository gameRepository;
     private final WeatherUltraRepository weatherUltraRepository;
     private final StadiumRepository stadiumRepository;
+
+
+    @Value("${WEATHER_API_AUTH_KEY}")
+    private String weatherApiAuthKey;
 
 
     /**
@@ -50,7 +57,7 @@ public class WeatherService {
      */
     @Transactional
     public void getShortForecastAndSave() {
-        String authKey = "zFoyjf6aR62aMo3-muetCg";  // 기상청 API 인증키
+        String authKey = weatherApiAuthKey;  // 기상청 API 인증키
 
         // 오늘 날짜 기준으로 열리는 경기 조회
         List<Game> todayGames = gameRepository.findByToday();
@@ -172,8 +179,9 @@ public class WeatherService {
                 // DB 저장
                 weatherRepository.saveAll(weatherList);
 
-            } catch (IOException e) {
-                System.out.println("[ERROR] 날씨 API 호출 실패 - 경기 ID: " + gameId + ", 이유: " + e.getMessage());
+            } catch (Exception e) {
+                Sentry.captureException(e);
+                log.error("날씨 API 호출 실패 - 경기 ID: " + gameId + ", 이유: " + e.getMessage());
             }
         }
     }

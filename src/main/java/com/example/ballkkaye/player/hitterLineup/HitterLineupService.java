@@ -9,7 +9,9 @@ import com.example.ballkkaye.player.startingPitcher.today.TodayStartingPitcherRe
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -35,6 +37,7 @@ import java.util.List;
 
 import static com.example.ballkkaye._core.util.Util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class HitterLineupService {
@@ -55,7 +58,7 @@ public class HitterLineupService {
         List<Game> todayGames = gameRepository.findByToday(); // 오늘 경기만 조회
 
         if (todayGames.isEmpty()) {
-            System.out.println("[INFO] 오늘 경기 없음 → 크롤링 생략");
+            log.info("오늘 경기 없음 → 크롤링 생략");
             return;
         }
 
@@ -72,20 +75,20 @@ public class HitterLineupService {
             LocalDateTime gameTime = game.getGameTime().toLocalDateTime();
             if (!now.isBefore(gameTime.minusHours(1)) && now.isBefore(gameTime)) {
                 eligible++;
-                System.out.printf("[대상] 크롤링 가능 - %s vs %s (%s)%n",
+                log.info("[대상] 크롤링 가능 - %s vs %s (%s)%n",
                         game.getAwayTeam().getTeamName(),
                         game.getHomeTeam().getTeamName(),
                         gameTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
                 crawlAndSaveSingleGameLineup(game);
             } else {
                 skipped++;
-                System.out.printf("[SKIP] 크롤링 시간 아님 - %s vs %s (%s)%n",
+                log.info("[SKIP] 크롤링 시간 아님 - %s vs %s (%s)%n",
                         game.getAwayTeam().getTeamName(),
                         game.getHomeTeam().getTeamName(),
                         gameTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
             }
         }
-        System.out.printf("[INFO] 전체 경기 수: %d, 크롤링 대상: %d, 스킵됨: %d%n", total, eligible, skipped);
+        log.info("전체 경기 수: %d, 크롤링 대상: %d, 스킵됨: %d%n", total, eligible, skipped);
     }
 
     /**
@@ -98,9 +101,9 @@ public class HitterLineupService {
         List<HitterLineup> entities = crawlSingleGameLineup(game);
         if (!entities.isEmpty()) {
             saveLineups(entities);
-            System.out.printf("[INFO] 라인업 저장 완료 → gameId=%d, 라인업 수: %d%n", game.getId(), entities.size());
+            log.info("라인업 저장 완료 → gameId=%d, 라인업 수: %d%n", game.getId(), entities.size());
         } else {
-            System.out.printf("[INFO] 라인업 없음 또는 크롤링 실패 → gameId=%d%n", game.getId());
+            log.info("라인업 없음 또는 크롤링 실패 → gameId=%d%n", game.getId());
         }
     }
 
@@ -180,7 +183,7 @@ public class HitterLineupService {
                     || !driver.findElements(By.cssSelector("#tableHitterT tbody tr")).isEmpty();
 
             if (!lineupAnnounced) {
-                System.out.printf(" [%s vs %s] 라인업 아직 미발표 → 생략 (gameId=%d)\n",
+                log.info(" [%s vs %s] 라인업 아직 미발표 → 생략 (gameId=%d)\n",
                         game.getAwayTeam().getTeamName(),
                         game.getHomeTeam().getTeamName(),
                         game.getId());
@@ -195,7 +198,8 @@ public class HitterLineupService {
             }
 
         } catch (Exception e) {
-            System.out.println("[ERROR] 타자 라인업 크롤링 실패 - gameId=" + game.getId());
+            Sentry.captureException(e);
+            log.error("타자 라인업 크롤링 실패 - gameId=" + game.getId());
             e.printStackTrace();
         } finally {
             driver.quit();
@@ -251,7 +255,8 @@ public class HitterLineupService {
                         .build());
 
             } catch (Exception e) {
-                System.out.printf("[ERROR] 선수 라인업 저장 실패 → 이름: %s, 팀 ID: %d, 메시지: %s%n", hitterName, teamId, e.getMessage());
+                Sentry.captureException(e);
+                log.error("선수 라인업 저장 실패 → 이름: %s, 팀 ID: %d, 메시지: %s%n", hitterName, teamId, e.getMessage());
             }
         }
 
@@ -321,7 +326,7 @@ public class HitterLineupService {
 
             // [12] 전적이 없을 경우 처리
             if (noRecordCell != null && noRecordCell.text().contains("기록이 없습니다")) {
-                System.out.printf("[DEBUG] 전적 없음: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
+                log.debug("전적 없음: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
                 return new HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO(null, null, null, null);
             }
 
@@ -339,7 +344,8 @@ public class HitterLineupService {
 
         } catch (Exception e) {
             // [ERROR] 크롤링 실패 시 로그 출력
-            System.out.printf(" [ERROR] 전적 조회 실패: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
+            Sentry.captureException(e);
+            log.error("전적 조회 실패: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
             return null;
         } finally {
             // [15] 드라이버 종료
