@@ -27,7 +27,6 @@ import java.util.Base64;
 @Configuration
 @RequiredArgsConstructor
 public class FcmConfig {
-
     private final FirebaseProperties firebaseProperties;
     private final ObjectMapper objectMapper;
 
