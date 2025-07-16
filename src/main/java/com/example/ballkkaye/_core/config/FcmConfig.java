@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseOptions;
 import io.sentry.Sentry;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
@@ -19,14 +20,16 @@ import java.util.Base64;
 public class FcmConfig {
 
     private static final String CONFIG_DIR = "config";
-    private static final String FIREBASE_KEY_FILE = "firebase-key.json";
+    private static final String FIREBASE_KEY_FILE = "firebase-service-key.json";
+
+    @Value("${FIREBASE_CONFIG_BASE64}") // application.properties에 설정한 키 사용
+    private String firebaseConfigBase64;
 
     @PostConstruct
     public void initFirebase() {
         try {
             // [1] 환경변수에서 Base64 인코딩된 Firebase 키 가져오기
-            String base64 = System.getenv("FIREBASE_CONFIG_BASE64");
-            if (base64 == null || base64.isBlank()) {
+            if (firebaseConfigBase64 == null || firebaseConfigBase64.isBlank()) {
                 String msg = "FIREBASE_CONFIG_BASE64 환경변수가 설정되지 않았습니다.";
                 log.error(msg);
                 Sentry.captureMessage(msg);
@@ -41,7 +44,7 @@ public class FcmConfig {
 
             // [3] 디코딩하여 config/firebase-key.json 로 저장
             Path firebaseKeyPath = configDir.resolve(FIREBASE_KEY_FILE);
-            byte[] decoded = Base64.getDecoder().decode(base64);
+            byte[] decoded = Base64.getDecoder().decode(firebaseConfigBase64);
             Files.write(firebaseKeyPath, decoded);
 
             // [4] Firebase 초기화

@@ -10,7 +10,7 @@ sentry {
 
     org = "ballkkaye"
     projectName = "java-spring-boot"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    //authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 group = 'com.example'
