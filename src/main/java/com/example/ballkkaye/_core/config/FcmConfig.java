@@ -27,6 +27,7 @@ import java.util.Base64;
 @Configuration
 @RequiredArgsConstructor
 public class FcmConfig {
+
     private final FirebaseProperties firebaseProperties;
     private final ObjectMapper objectMapper;
 
@@ -35,11 +36,11 @@ public class FcmConfig {
         // 1. 환경 변수에서 '깨끗한 Base64' 키를 가져옵니다.
         String base64EncodedKey = firebaseProperties.getPrivateKey();
 
-        // 2. Base64 디코딩만 수행합니다.
-        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedKey);
-        String originalPemKey = new String(decodedBytes, StandardCharsets.UTF_8).replace("\\n", "\n");
 
-        // 3. 디코딩된 키를 다시 설정합니다.
+// ✅ 2. 디코딩 수행
+        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedKey);
+// ✅ 3. 복원된 PEM 키
+        String originalPemKey = new String(decodedBytes, StandardCharsets.UTF_8);
         firebaseProperties.setPrivateKey(originalPemKey);
 
         // 4. JSON으로 변환하여 초기화합니다.
