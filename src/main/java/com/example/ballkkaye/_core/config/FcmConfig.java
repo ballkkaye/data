@@ -1,63 +1,67 @@
 package com.example.ballkkaye._core.config;
 
+import com.example.ballkkaye._core.util.Base64Util;
+import com.example.ballkkaye.fcm.FirebaseProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import io.sentry.Sentry;
-import jakarta.annotation.PostConstruct;
+import com.google.firebase.messaging.FirebaseMessaging;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * 이 클래스는 Spring Boot 애플리케이션에서 Firebase Admin SDK를 초기화하고
+ * FirebaseMessaging 인스턴스를 Bean으로 등록하는 설정을 담당합니다.
+ * application.properties에 등록된 개별 키 값을 조합하여 유연하게 동작합니다.
+ */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class FcmConfig {
 
-    @Value("${FIREBASE_CONFIG_BASE64}") // application.properties에 설정한 키 사용
-    private String firebaseConfigBase64;
+    private final FirebaseProperties firebaseProperties;
+    private final ObjectMapper objectMapper;
 
-    @PostConstruct
-    public void initFirebase() {
-        try {
-            // [1] 환경변수에서 Base64 인코딩된 Firebase 키 가져오기
-            if (firebaseConfigBase64 == null || firebaseConfigBase64.isBlank()) {
-                String msg = "FIREBASE_CONFIG_BASE64 환경변수가 설정되지 않았습니다.";
-                log.error(msg);
-                Sentry.captureMessage(msg);
-                throw new IllegalStateException(msg);
+    @Bean
+    public FirebaseApp firebaseApp() throws IOException {
+        // 1. 환경 변수에서 '깨끗한 Base64' 키를 가져옵니다.
+        String base64EncodedKey = firebaseProperties.getPrivateKey();
+
+        // 2. Base64 디코딩만 수행합니다.
+        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedKey);
+        String originalPemKey = new String(decodedBytes, StandardCharsets.UTF_8).replace("\\n", "\n");
+
+        // 3. 디코딩된 키를 다시 설정합니다.
+        firebaseProperties.setPrivateKey(originalPemKey);
+
+        // 4. JSON으로 변환하여 초기화합니다.
+        String json = objectMapper.writeValueAsString(firebaseProperties);
+        InputStream serviceAccountStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+
+        try (InputStream serviceAccount = serviceAccountStream) {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            if (FirebaseApp.getApps().isEmpty()) {
+                return FirebaseApp.initializeApp(options);
+            } else {
+                return FirebaseApp.getInstance();
             }
-
-            // [3] 디코딩하여 config/firebase-key.json 로 저장
-            byte[] decoded = Base64.getDecoder().decode(firebaseConfigBase64);
-
-            // [4] Firebase 초기화
-            try {
-                // JSON 문자열로 Firebase 인증 정보를 생성
-                String json = new String(decoded);
-                GoogleCredentials credentials = GoogleCredentials.fromStream(
-                        new java.io.ByteArrayInputStream(json.getBytes())
-                );
-
-                FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(credentials)
-                        .build();
-
-                if (FirebaseApp.getApps().isEmpty()) {
-                    FirebaseApp.initializeApp(options);
-                } else {
-                    log.info("FirebaseApp 이미 초기화되어 있음 - 중복 초기화 생략");
-                }
-
-            } catch (Exception e) {
-                Sentry.captureException(e);
-                log.error("Firebase 초기화 실패: {}", e.getMessage(), e);
-            }
-
-        } catch (Exception e) {
-            Sentry.captureException(e);
-            log.error("FCM 초기화 실패: {}", e.getMessage(), e);
         }
+    }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
     }
 }

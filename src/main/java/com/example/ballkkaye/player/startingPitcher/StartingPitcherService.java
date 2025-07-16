@@ -10,7 +10,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -106,7 +105,6 @@ public class StartingPitcherService {
                 if (homeTeamDbId == null || awayTeamDbId == null) {
                     String message = String.format("알 수 없는 팀 코드: home=%s, away=%s", homeTeamId, awayTeamId);
                     log.error(message);
-                    Sentry.captureMessage(message);
                     continue;
                 }
 
@@ -155,7 +153,6 @@ public class StartingPitcherService {
             }
 
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("선발투수 크롤링 중 예외 발생", e);
         } finally {
             if (driver != null) driver.quit();
@@ -191,7 +188,6 @@ public class StartingPitcherService {
 
             return JsonParser.parseString(response.body()).getAsJsonObject();
         } catch (IOException e) {
-            Sentry.captureException(e);
             log.error("투수 분석 API 호출 실패 - awayTeamId={}, awayPitId={}, homeTeamId={}, homePitId={}",
                     awayTeamId, awayPitId, homeTeamId, homePitId, e);
             return null;
