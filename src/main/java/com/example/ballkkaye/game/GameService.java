@@ -1,6 +1,7 @@
 package com.example.ballkkaye.game;
 
 import com.example.ballkkaye._core.error.ex.Exception404;
+import com.example.ballkkaye._core.error.ex.Exception500;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.common.enums.BroadcastChannel;
 import com.example.ballkkaye.common.enums.GameStatus;
@@ -9,7 +10,6 @@ import com.example.ballkkaye.stadium.StadiumRepository;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -119,7 +119,6 @@ public class GameService {
                 }
             }
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("크롤링 중 오류 발생", e);
         } finally {
             if (driver != null) {
@@ -127,7 +126,6 @@ public class GameService {
                     Thread.sleep(3000);
                     driver.quit();
                 } catch (InterruptedException e) {
-                    Sentry.captureException(e);
                     log.error("WebDriver 종료 중 인터럽트 발생", e);
                     Thread.currentThread().interrupt();
                 }
@@ -219,8 +217,7 @@ public class GameService {
 
             if (awayTeamId == null || homeTeamId == null) {
                 String message = "팀 이름 매핑 실패: awayTeamId=" + awayTeamId + ", homeTeamId=" + homeTeamId;
-                RuntimeException e = new RuntimeException(message);
-                Sentry.captureException(e);
+                Exception500 e = new Exception500(message);
                 log.error(message, e);
                 throw e;
             }
@@ -374,7 +371,6 @@ public class GameService {
                 }
             }
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("오늘 경기 업데이트 실패: " + e.getMessage(), e);
         } finally {
             if (driver != null) {
@@ -382,7 +378,6 @@ public class GameService {
                     Thread.sleep(3000);
                     driver.quit();
                 } catch (InterruptedException e) {
-                    Sentry.captureException(e);
                     log.error("WebDriver 종료 중 인터럽트 발생", e);
                     Thread.currentThread().interrupt();
                 }

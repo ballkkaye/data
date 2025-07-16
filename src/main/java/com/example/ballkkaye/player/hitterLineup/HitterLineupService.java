@@ -9,7 +9,6 @@ import com.example.ballkkaye.player.startingPitcher.today.TodayStartingPitcherRe
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -198,9 +197,7 @@ public class HitterLineupService {
             }
 
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("타자 라인업 크롤링 실패 - gameId=" + game.getId());
-            e.printStackTrace();
         } finally {
             driver.quit();
         }
@@ -255,7 +252,6 @@ public class HitterLineupService {
                         .build());
 
             } catch (Exception e) {
-                Sentry.captureException(e);
                 log.error("선수 라인업 저장 실패 → 이름: %s, 팀 ID: %d, 메시지: %s%n", hitterName, teamId, e.getMessage());
             }
         }
@@ -343,8 +339,6 @@ public class HitterLineupService {
             return new HitterLineupRequest.HitterSaveDTO.HitterInfo.MachUpStatusDTO(ab, h, avg, ops);
 
         } catch (Exception e) {
-            // [ERROR] 크롤링 실패 시 로그 출력
-            Sentry.captureException(e);
             log.error("전적 조회 실패: %s(투수) vs %s(타자)%n", pitcherNm, hitterNm);
             return null;
         } finally {
