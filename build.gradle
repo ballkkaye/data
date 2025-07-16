@@ -13,7 +13,7 @@ sentry {
     org = "ballkkaye"
 
     // Sentry.io 에서 생성한 실제 프로젝트 이름(Project Slug)을 입력합니다.
-    projectName = "ballkkaye"
+    projectName = "java-spring-boot"
 
     // Sentry 인증 토큰입니다
     // System.getenv("SENTRY_AUTH_TOKEN")
