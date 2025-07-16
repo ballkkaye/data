@@ -106,7 +106,6 @@ public class StartingPitcherService {
                 if (homeTeamDbId == null || awayTeamDbId == null) {
                     String message = String.format("알 수 없는 팀 코드: home=%s, away=%s", homeTeamId, awayTeamId);
                     log.error(message);
-                    Sentry.captureMessage(message);
                     continue;
                 }
 
@@ -191,7 +190,6 @@ public class StartingPitcherService {
 
             return JsonParser.parseString(response.body()).getAsJsonObject();
         } catch (IOException e) {
-            Sentry.captureException(e);
             log.error("투수 분석 API 호출 실패 - awayTeamId={}, awayPitId={}, homeTeamId={}, homePitId={}",
                     awayTeamId, awayPitId, homeTeamId, homePitId, e);
             return null;

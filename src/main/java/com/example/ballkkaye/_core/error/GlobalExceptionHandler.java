@@ -1,14 +1,13 @@
 package com.example.ballkkaye._core.error;
 
 
-import com.example.ballkkaye._core.error.ex.Exception400;
-import com.example.ballkkaye._core.error.ex.Exception401;
-import com.example.ballkkaye._core.error.ex.Exception403;
-import com.example.ballkkaye._core.error.ex.Exception404;
+import com.example.ballkkaye._core.error.ex.*;
 import com.example.ballkkaye._core.util.Script;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -39,6 +38,12 @@ public class GlobalExceptionHandler {
         return Script.back(e.getMessage());
     }
 
+    @ExceptionHandler(Exception500.class)
+    public String ex500(Exception500 e) {
+        log.error("[500 서버 오류] {}", e.getMessage(), e); // 메시지와 스택트레이스 함께 출력
+        return Script.back(e.getMessage());
+    }
+
 
     // 그 외 오류
     @ExceptionHandler(Exception.class)
@@ -49,7 +54,7 @@ public class GlobalExceptionHandler {
                     history.back();
                 </script>
                 """.replace("${msg}", "관리자용 예외 발생.");
-        System.err.println("[관리자용 예외 발생] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+        log.error("[관리자용 예외 발생] " + e.getClass().getSimpleName() + ": " + e.getMessage());
         return html;
     }
 }
