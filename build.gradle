@@ -32,6 +32,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3' // 마리아 DB
     implementation 'io.github.cdimascio:dotenv-java:3.2.0' // env
     implementation 'com.google.firebase:firebase-admin:9.2.0' // firebase sdk
     implementation 'com.squareup.okhttp3:okhttp:5.1.0' // okhttp
