@@ -13,7 +13,6 @@ import java.util.Optional;
 public class BoardReplyLikeRepository {
     private final EntityManager em;
 
-
     public Optional<BoardReplyLike> findByReplyIdAndUserId(Integer replyId, Integer userId) {
         try {
             BoardReplyLike replyLike = em.createQuery(
