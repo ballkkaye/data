@@ -183,7 +183,7 @@ public class HitterLineupService {
                     || !driver.findElements(By.cssSelector("#tableHitterT tbody tr")).isEmpty();
 
             if (!lineupAnnounced) {
-                System.out.printf(" [%s vs %s] 라인업 아직 미발표 → 생략 (gameId=%d)\n",
+                log.info(" [%s vs %s] 라인업 아직 미발표 → 생략 (gameId=%d)\n",
                         game.getAwayTeam().getTeamName(),
                         game.getHomeTeam().getTeamName(),
                         game.getId());
