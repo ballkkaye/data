@@ -42,6 +42,8 @@ repositories {
 dependencies {
     implementation platform('io.sentry:sentry-bom:8.17.0')
     implementation 'io.sentry:sentry-spring-boot-starter-jakarta'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3' // 마리아 DB
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0' // env
     implementation 'com.google.firebase:firebase-admin:9.2.0' // firebase sdk
     implementation 'org.jsoup:jsoup:1.20.1'
     implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
