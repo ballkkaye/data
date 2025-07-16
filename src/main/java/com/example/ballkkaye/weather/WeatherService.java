@@ -15,7 +15,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -180,7 +179,6 @@ public class WeatherService {
                 weatherRepository.saveAll(weatherList);
 
             } catch (Exception e) {
-                Sentry.captureException(e);
                 log.error("날씨 API 호출 실패 - 경기 ID: " + gameId + ", 이유: " + e.getMessage());
             }
         }

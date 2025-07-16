@@ -1,10 +1,10 @@
 package com.example.ballkkaye.player;
 
+import com.example.ballkkaye._core.error.ex.Exception404;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -130,7 +130,6 @@ public class PlayerService {
             }
 
         } catch (Exception e) {
-            Sentry.captureException(e);
             log.error("크롤링 중 오류 발생", e);
         } finally {
             // 크롬 드라이버 종료
@@ -141,7 +140,7 @@ public class PlayerService {
 
         for (PlayerRequest.Dto dto : matchedPlayers) {
             Team team = teamRepository.findById(dto.getTeamId())
-                    .orElseThrow(() -> new RuntimeException("team not found: id=" + dto.getTeamId()));
+                    .orElseThrow(() -> new Exception404("team not found: id=" + dto.getTeamId()));
 
             Player player = Player.builder()
                     .kboPlayerId(dto.getKboPlayerId())

@@ -2,6 +2,7 @@ package com.example.ballkkaye.team.record;
 
 import com.example.ballkkaye._core.error.ex.Exception400;
 import com.example.ballkkaye._core.error.ex.Exception404;
+import com.example.ballkkaye._core.error.ex.Exception500;
 import com.example.ballkkaye._core.util.UtilMapper;
 import com.example.ballkkaye.team.Team;
 import com.example.ballkkaye.team.TeamRepository;
@@ -9,7 +10,6 @@ import com.example.ballkkaye.team.record.today.TodayTeamRecord;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRepository;
 import com.example.ballkkaye.team.record.today.TodayTeamRecordRequest;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.sentry.Sentry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +84,8 @@ public class TeamRecordService {
             }
 
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.error("InterruptedException 발생", e);
+            throw new Exception500(e.getMessage());
         }
 
         List<TeamRecordRequest.Dto> dtoList = new ArrayList<>();
@@ -133,7 +134,7 @@ public class TeamRecordService {
                 dtoList.add(dto);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("팀 기록 크롤링 중 예외 발생", e);
         }
         List<TeamRecord> entities = new ArrayList<>();
 
@@ -160,7 +161,7 @@ public class TeamRecordService {
             entities.add(entity);
         }
         if (entities.size() < 10) {
-            throw new RuntimeException(); // TODO 이거 나중에 수제 예외처리로 바꿔야함
+            throw new Exception400("팀 기록이 10개 미만입니다.");
         }
         teamRecordRepository.saveAll(entities);
     }
@@ -213,7 +214,7 @@ public class TeamRecordService {
             }
 
         } catch (Exception e) {
-            Sentry.captureException(e);
+            log.error("팀 기록 크롤링 중 예외 발생", e);
         }
 
         List<TeamRecordRequest.Dto> dtoList = new ArrayList<>();
@@ -262,7 +263,7 @@ public class TeamRecordService {
                 dtoList.add(dto);
             }
         } catch (Exception e) {
-            Sentry.captureException(e);
+            log.error("팀 기록 크롤링 중 예외 발생", e);
         }
         List<TeamRecord> entities = new ArrayList<>();
 
