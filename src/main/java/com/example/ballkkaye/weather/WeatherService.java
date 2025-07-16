@@ -43,7 +43,7 @@ public class WeatherService {
     private final StadiumRepository stadiumRepository;
 
 
-    @Value("${WEATHER_API_AUTH_KEY}")
+    @Value("${weather.api.auth-key}")
     private String weatherApiAuthKey;
 
 
