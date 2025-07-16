@@ -1,7 +1,7 @@
-package com.example.ballkkaye.board.reply;
+package com.example.ballkkaye.match;
 
-import com.example.ballkkaye.board.Board;
 import com.example.ballkkaye.common.enums.DeleteStatus;
+import com.example.ballkkaye.match.chat.room.ChatRoom;
 import com.example.ballkkaye.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,33 +13,28 @@ import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
-@Table(name = "board_reply_tb")
+@Table(name = "match_tb")
 @Entity
-public class BoardReply {
+public class Match {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private Board board;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_reply_id")
-    private BoardReply parentReplyId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_reply_id")
-    private BoardReply tagReplyId;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private ChatRoom chatRoom;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private DeleteStatus deleteStatus;
+    private String title;
 
-    @Column(nullable = false)
+    @Column
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DeleteStatus deleteStatus;
 
     @UpdateTimestamp
     private Timestamp updatedAt;

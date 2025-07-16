@@ -1,8 +1,10 @@
-package com.example.ballkkaye.board.reply;
+package com.example.ballkkaye.match.chat.room;
 
-import com.example.ballkkaye.board.Board;
+import com.example.ballkkaye.common.enums.Age;
 import com.example.ballkkaye.common.enums.DeleteStatus;
-import com.example.ballkkaye.user.User;
+import com.example.ballkkaye.common.enums.Gender;
+import com.example.ballkkaye.game.Game;
+import com.example.ballkkaye.team.Team;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,33 +15,39 @@ import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
-@Table(name = "board_reply_tb")
+@Table(name = "chat_room_tb")
 @Entity
-public class BoardReply {
+public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private Board board;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private User user;
+    private Game game;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_reply_id")
-    private BoardReply parentReplyId;
+    private Team team;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_reply_id")
-    private BoardReply tagReplyId;
+    @Column(nullable = false)
+    private Integer maxParticipants;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Gender preferredGender;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Age preferredAge;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private DeleteStatus deleteStatus;
 
     @Column(nullable = false)
-    private String content;
+    private Boolean isSameTeam;
+
+    @Column
+    private Timestamp lastDisconnectedAt;
 
     @UpdateTimestamp
     private Timestamp updatedAt;
