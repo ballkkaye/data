@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 /**
  * 이 클래스는 Spring Boot 애플리케이션에서 Firebase Admin SDK를 초기화하고
@@ -27,14 +26,27 @@ import java.util.Base64;
 @Configuration
 @RequiredArgsConstructor
 public class FcmConfig {
+
+    // 1. application.properties의 firebase 속성을 담고 있는 객체를 주입받습니다.
     private final FirebaseProperties firebaseProperties;
+    // 2. 자바 객체를 JSON 문자열로 변환하기 위해 Spring이 관리하는 ObjectMapper를 주입받습니다.
     private final ObjectMapper objectMapper;
 
+    /**
+     * application.properties의 속성 값을 사용하여 FirebaseApp을 초기화하고 Bean으로 등록하는 메소드.
+     *
+     * @return 초기화된 FirebaseApp 인스턴스
+     * @throws IOException 설정 파일 로드 중 발생할 수 있는 예외
+     */
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
-<<<<<<< HEAD
 
         System.out.println("시작!!!!!!!!!!!!!!!!!!!");
+
+        log.error("❌ error 로그");
+        log.warn("⚠️ warn 로그");
+        log.info("✅ info 로그");
+        log.debug("🐛 debug 로그");
         // 1. properties에서 Base64로 인코딩된 키를 가져옵니다.
         String rawFbPrivateKey = firebaseProperties.getPrivateKey();
 
@@ -42,38 +54,22 @@ public class FcmConfig {
         //    (결과: "-----BEGIN...\\nMIIEvg..." 와 같이 `\\n` 문자가 포함된 문자열)
         String decodedPrivateKeyWithLiterals = Base64Util.decodeBase64(rawFbPrivateKey);
 
-        log.debug("decodedPrivateKeyWithLiterals :{}", decodedPrivateKeyWithLiterals);
-        System.out.println("decodedPrivateKeyWithLiterals :" + decodedPrivateKeyWithLiterals);
+        log.info("rawData :{}", decodedPrivateKeyWithLiterals);
 
         // 3. [핵심] 디코딩된 문자열에 포함된 `\\n`을 실제 줄 바꿈 문자 `\n`으로 치환합니다.
         String finalFormattedPrivateKey = decodedPrivateKeyWithLiterals.replace("\\n", "\n");
-=======
-        // 1. 환경 변수에서 '깨끗한 Base64' 키를 가져옵니다.
-        String base64EncodedKey = firebaseProperties.getPrivateKey();
->>>>>>> ffbb0fdb5a4a5f42a9a02e9940b465c14be34613
 
-        log.debug("finalFormattedPrivateKey :{}", finalFormattedPrivateKey);
-        System.out.println("finalFormattedPrivateKey :" + finalFormattedPrivateKey);
+        log.info("originData :{}", finalFormattedPrivateKey);
 
-        log.debug("파이어베이스 key {}", finalFormattedPrivateKey);
+        // 4. 최종적으로 포맷된 키를 properties 객체에 다시 설정합니다.
+        firebaseProperties.setPrivateKey(finalFormattedPrivateKey);
 
-// ✅ 2. 디코딩 수행
-        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedKey);
-// ✅ 3. 복원된 PEM 키
-        String originalPemKey = new String(decodedBytes, StandardCharsets.UTF_8);
-        firebaseProperties.setPrivateKey(originalPemKey);
-
-        // 4. JSON으로 변환하여 초기화합니다.
+        // 5. 올바른 키가 포함된 객체를 JSON으로 직렬화합니다.
         String json = objectMapper.writeValueAsString(firebaseProperties);
-<<<<<<< HEAD
 
-        log.debug("json :{}", json);
-        System.out.println("json :" + json);
-
+        log.info("json :{}", json);
 
         // 6. 생성된 JSON 문자열로부터 스트림을 만들어 Firebase를 초기화합니다.
-=======
->>>>>>> ffbb0fdb5a4a5f42a9a02e9940b465c14be34613
         InputStream serviceAccountStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
         try (InputStream serviceAccount = serviceAccountStream) {
@@ -81,6 +77,7 @@ public class FcmConfig {
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
 
+            // 5. 앱이 이미 초기화되었는지 확인하여 중복 초기화를 방지합니다.
             if (FirebaseApp.getApps().isEmpty()) {
                 log.debug("파이어베이스 초기화 성공");
                 return FirebaseApp.initializeApp(options);
@@ -91,6 +88,12 @@ public class FcmConfig {
         }
     }
 
+    /**
+     * FirebaseMessaging 인스턴스를 Bean으로 등록하는 메소드.
+     *
+     * @param firebaseApp 위에서 초기화되고 등록된 FirebaseApp Bean을 주입받습니다.
+     * @return FirebaseMessaging 인스턴스
+     */
     @Bean
     public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
         return FirebaseMessaging.getInstance(firebaseApp);
