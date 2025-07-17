@@ -61,7 +61,6 @@ public class FcmConfig {
         // 5. 올바른 키가 포함된 객체를 JSON으로 직렬화합니다.
         String json = objectMapper.writeValueAsString(firebaseProperties);
 
-        // test
         log.info("json :{}", json);
 
         // 6. 생성된 JSON 문자열로부터 스트림을 만들어 Firebase를 초기화합니다.
