@@ -40,12 +40,13 @@ jobs:
       # gradlew를 사용해 프로젝트를 클린, 빌드, 테스트합니다.
       # 이 단계에서 스프링 부트가 실행되므로, 필요한 모든 환경 변수를 여기서 주입해야 합니다.
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: |
+          ./gradlew clean build
+          echo "SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN"
 
         # ❗️❗️❗️ 바로 이 부분이 이번 문제 해결의 핵심입니다 ❗️❗️❗️
         # GitHub Secrets에 저장된 값들을 빌드 환경의 '환경 변수'로 만들어줍니다.
         env:
-          FIREBASE_CONFIG_BASE64: ${{ secrets.FIREBASE_CONFIG_BASE64 }}
           SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
           WEATHER_API_AUTH_KEY: ${{secrets.WEATHER_API_AUTH_KEY}}
 
@@ -70,13 +71,13 @@ jobs:
           cp Procfile deploy/Procfile
           cp -r .ebextensions deploy/.ebextensions
           cd deploy && zip -r deploy.zip .
-#      - name: Deploy to EB
-#        uses: einaregilsson/beanstalk-deploy@v22
-#        with:
-#          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-#          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-#          application_name: ballkkaye-craw # 엘리스틱 빈스톡 애플리케이션 이름!
-#          environment_name: Ballkkaye-craw-env  # 엘리스틱 빈스톡 환경 이름!
-#          version_label: ballkkaye-${{steps.current-time.outputs.formattedTime}}
-#          region: ap-northeast-2
-#          deployment_package: deploy/deploy.zip
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: ballkkaye-craw # 엘리스틱 빈스톡 애플리케이션 이름!
+          environment_name: Ballkkaye-craw-env  # 엘리스틱 빈스톡 환경 이름!
+          version_label: ballkkaye-${{steps.current-time.outputs.formattedTime}}
+          region: ap-northeast-2
+          deployment_package: deploy/deploy.zip
