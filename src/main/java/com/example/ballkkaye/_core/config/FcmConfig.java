@@ -40,6 +40,8 @@ public class FcmConfig {
      */
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
+
+        System.out.println("시작!!!!!!!!!!!!!!!!!!!");
         // 1. properties에서 Base64로 인코딩된 키를 가져옵니다.
         String rawFbPrivateKey = firebaseProperties.getPrivateKey();
 
@@ -47,15 +49,25 @@ public class FcmConfig {
         //    (결과: "-----BEGIN...\\nMIIEvg..." 와 같이 `\\n` 문자가 포함된 문자열)
         String decodedPrivateKeyWithLiterals = Base64Util.decodeBase64(rawFbPrivateKey);
 
+        log.debug("decodedPrivateKeyWithLiterals :{}", decodedPrivateKeyWithLiterals);
+        System.out.println("decodedPrivateKeyWithLiterals :" + decodedPrivateKeyWithLiterals);
+
         // 3. [핵심] 디코딩된 문자열에 포함된 `\\n`을 실제 줄 바꿈 문자 `\n`으로 치환합니다.
         String finalFormattedPrivateKey = decodedPrivateKeyWithLiterals.replace("\\n", "\n");
 
+        log.debug("finalFormattedPrivateKey :{}", finalFormattedPrivateKey);
+        System.out.println("finalFormattedPrivateKey :" + finalFormattedPrivateKey);
+
+        log.debug("파이어베이스 key {}", finalFormattedPrivateKey);
 
         // 4. 최종적으로 포맷된 키를 properties 객체에 다시 설정합니다.
         firebaseProperties.setPrivateKey(finalFormattedPrivateKey);
 
         // 5. 올바른 키가 포함된 객체를 JSON으로 직렬화합니다.
         String json = objectMapper.writeValueAsString(firebaseProperties);
+
+        log.debug("json :{}", json);
+        System.out.println("json :" + json);
 
 
         // 6. 생성된 JSON 문자열로부터 스트림을 만들어 Firebase를 초기화합니다.
@@ -68,8 +80,10 @@ public class FcmConfig {
 
             // 5. 앱이 이미 초기화되었는지 확인하여 중복 초기화를 방지합니다.
             if (FirebaseApp.getApps().isEmpty()) {
+                log.debug("파이어베이스 초기화 성공");
                 return FirebaseApp.initializeApp(options);
             } else {
+                log.debug("파이어베이스 초기화 성공");
                 return FirebaseApp.getInstance();
             }
         }

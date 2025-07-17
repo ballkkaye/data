@@ -1,8 +1,11 @@
 package com.example.ballkkaye._core.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+@Slf4j
 public class Base64Util {
 
     public static String decodeBase64(String base64Encoded) {
@@ -18,6 +21,8 @@ public class Base64Util {
 
         // 3. 디코딩된 바이트 배열을 UTF-8 문자열로 변환합니다.
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
+
+        log.debug("디코딩 된 string {}", decodedString);
 
         return decodedString;
     }
