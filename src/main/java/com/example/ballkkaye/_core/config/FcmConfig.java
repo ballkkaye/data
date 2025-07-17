@@ -41,17 +41,10 @@ public class FcmConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
 
-        System.out.println("시작!!!!!!!!!!!!!!!!!!!");
-
-        log.error("❌ error 로그");
-        log.warn("⚠️ warn 로그");
-        log.info("✅ info 로그");
-        log.debug("🐛 debug 로그");
         // 1. properties에서 Base64로 인코딩된 키를 가져옵니다.
         String rawFbPrivateKey = firebaseProperties.getPrivateKey();
 
         // 2. Base64로 디코딩합니다.
-        //    (결과: "-----BEGIN...\\nMIIEvg..." 와 같이 `\\n` 문자가 포함된 문자열)
         String decodedPrivateKeyWithLiterals = Base64Util.decodeBase64(rawFbPrivateKey);
 
         log.info("rawData :{}", decodedPrivateKeyWithLiterals);
@@ -63,6 +56,7 @@ public class FcmConfig {
 
         // 4. 최종적으로 포맷된 키를 properties 객체에 다시 설정합니다.
         firebaseProperties.setPrivateKey(finalFormattedPrivateKey);
+
 
         // 5. 올바른 키가 포함된 객체를 JSON으로 직렬화합니다.
         String json = objectMapper.writeValueAsString(firebaseProperties);
