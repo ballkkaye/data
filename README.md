@@ -2,11 +2,11 @@
 
 ## KBO 팬들을 위한 올인원 커뮤니티 플랫폼
 
-![로고](src/main/resources/static/readme/볼까예로고.png)
+![로고](src/main/resources/static/img/readme/볼까예로고.png)
 
 ## 🎬 프로젝트 시연영상
 
-[![영상 썸네일](src/main/resources/static/readme/영상썸네일.png)](https://www.notion.so/getinthere/2338a08b6c0d808a9f2feb1ede96279e?source=copy_link#2338a08b6c0d801bae19c71e9409882f)
+[![영상 썸네일](src/main/resources/static/img/readme/영상썸네일.png)](https://www.notion.so/getinthere/2338a08b6c0d808a9f2feb1ede96279e?source=copy_link#2338a08b6c0d801bae19c71e9409882f)
 
 ## 🛠️기술스택
 
@@ -55,24 +55,24 @@
 
 ### 주제 선정 이유
 
-![주제선정이유](src/main/resources/static/readme/주제선정이유.png)
-![볼까예탄생배경](src/main/resources/static/readme/볼까예탄생배경.png)
+![주제선정이유](src/main/resources/static/img/readme/주제선정이유.png)
+![볼까예탄생배경](src/main/resources/static/img/readme/볼까예탄생배경.png)
 
 ### 핵심 기능 소개
 
-![핵심기능소개](src/main/resources/static/readme/핵심기능소개.png)
+![핵심기능소개](src/main/resources/static/img/readme/핵심기능소개.png)
 
 ### FCM 알림 시스템
 
-![FCM알림시스템](src/main/resources/static/readme/FCM알림.png)
+![FCM알림시스템](src/main/resources/static/img/readme/FCM알림.png)
 
 ### 구조도
 
-![구조도](src/main/resources/static/readme/구조도.png)
+![구조도](src/main/resources/static/img/readme/구조도.png)
 
 ### ERD
 
-![erd](src/main/resources/static/readme/ERD.png)
+![erd](src/main/resources/static/img/readme/ERD.png)
 
 ## 백엔드 팀원
 
